@@ -1,0 +1,152 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cybersurx-prod
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: cybersurx-prod
+  labels:
+    app: backend
+    version: v1
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        version: v1
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+      - name: backend
+        image: ${BACKEND_IMAGE}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: cybersurx-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          value: "redis://redis:6379/0"
+        - name: OLLAMA_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cybersurx-secrets
+              key: OLLAMA_API_KEY
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cybersurx-secrets
+              key: JWT_SECRET_KEY
+        - name: ADMIN_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: cybersurx-config
+              key: ADMIN_EMAIL
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: cybersurx-prod
+spec:
+  selector:
+    app: backend
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: cybersurx-prod
+  labels:
+    app: worker
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+        version: v1
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+      - name: worker
+        image: ${BACKEND_IMAGE}
+        imagePullPolicy: Always
+        command: ["celery", "-A", "src.worker.tasks", "worker", "--loglevel=info", "--concurrency=4"]
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: cybersurx-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          value: "redis://redis:6379/0"
+        - name: OLLAMA_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cybersurx-secrets
+              key: OLLAMA_API_KEY
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"

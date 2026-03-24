@@ -1,0 +1,97 @@
+version: '3.9'
+
+services:
+  api:
+    image: ${BACKEND_IMAGE:-ghcr.io/your-org/cybersurx/backend:latest}
+    container_name: aegis-api-staging
+    environment:
+      - ENVIRONMENT=staging
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./cybersurx-staging.db}
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - LLM_API_BASE=${LLM_API_BASE:-https://ollama.com/api}
+      - LLM_MODEL=${LLM_MODEL:-qwen3-coder:480b-cloud}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_EXPIRE_MINUTES=${JWT_EXPIRE_MINUTES:-480}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@staging.cybersurx.io}
+      - ADMIN_DEFAULT_PASSWORD=${ADMIN_DEFAULT_PASSWORD}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://staging.cybersurx.io}
+      - LOG_LEVEL=debug
+      - SENTRY_DSN=${SENTRY_DSN_STAGING}
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      zap:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      environment: staging
+      version: ${CI_COMMIT_SHA:-latest}
+
+  worker:
+    image: ${BACKEND_IMAGE:-ghcr.io/your-org/cybersurx/backend:latest}
+    container_name: aegis-worker-staging
+    command: celery -A src.worker.tasks worker --loglevel=debug --concurrency=2
+    environment:
+      - ENVIRONMENT=staging
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./cybersurx-staging.db}
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - LLM_API_BASE=${LLM_API_BASE:-https://ollama.com/api}
+      - LLM_MODEL=${LLM_MODEL:-qwen3-coder:480b-cloud}
+      - ZAP_HOST=zap
+      - ZAP_API_KEY=${ZAP_API_KEY}
+      - SENTRY_DSN=${SENTRY_DSN_STAGING}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    labels:
+      environment: staging
+
+  redis:
+    image: redis:7-alpine
+    container_name: aegis-redis-staging
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: aegis-zap-staging
+    command: >
+      zap.sh -daemon -host 0.0.0.0 -port 8080
+      -config api.key=${ZAP_API_KEY}
+      -config api.addrs.addr.name=.*
+      -config api.addrs.addr.regex=true
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/your-org/cybersurx/frontend:latest}
+    container_name: aegis-frontend-staging
+    ports:
+      - "3000:80"
+    environment:
+      - API_URL=https://staging.cybersurx.io/api
+      - ENVIRONMENT=staging
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    labels:
+      environment: staging

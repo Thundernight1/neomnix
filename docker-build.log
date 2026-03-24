@@ -1,0 +1,1580 @@
+ Image hipaasecsoc2-frontend Building 
+ Image hipaasecsoc2-api Building 
+ Image hipaasecsoc2-worker Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.58kB done
+#1 DONE 0.0s
+
+#2 [frontend internal] load build definition from Dockerfile
+#2 transferring dockerfile: 364B done
+#2 DONE 0.0s
+
+#3 [api internal] load build definition from Dockerfile
+#3 transferring dockerfile: 737B done
+#3 DONE 0.0s
+
+#4 [worker internal] load metadata for docker.io/library/python:3.10
+#4 ...
+
+#5 [frontend internal] load metadata for docker.io/library/node:18-alpine
+#5 DONE 0.4s
+
+#6 [frontend internal] load metadata for docker.io/library/nginx:alpine
+#6 DONE 0.4s
+
+#4 [worker internal] load metadata for docker.io/library/python:3.10
+#4 DONE 0.4s
+
+#7 [frontend internal] load .dockerignore
+#7 transferring context: 2B done
+#7 DONE 0.0s
+
+#8 [worker internal] load .dockerignore
+#8 transferring context: 2B done
+#8 DONE 0.0s
+
+#9 [api internal] load build context
+#9 transferring context: 1.44kB done
+#9 DONE 0.0s
+
+#10 [worker 1/6] FROM docker.io/library/python:3.10@sha256:a5ef46a93e429aa07466f536c25962f3c157c0db77f5b9691d1a04a832cd62f4
+#10 resolve docker.io/library/python:3.10@sha256:a5ef46a93e429aa07466f536c25962f3c157c0db77f5b9691d1a04a832cd62f4 0.0s done
+#10 CACHED
+
+#11 [frontend builder 1/6] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+#11 resolve docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e 0.0s done
+#11 DONE 0.0s
+
+#12 [frontend builder 2/6] WORKDIR /app
+#12 CACHED
+
+#13 [frontend stage-1 1/3] FROM docker.io/library/nginx:alpine@sha256:f46cb72c7df02710e693e863a983ac42f6a9579058a59a35f1ae36c9958e4ce0
+#13 resolve docker.io/library/nginx:alpine@sha256:f46cb72c7df02710e693e863a983ac42f6a9579058a59a35f1ae36c9958e4ce0 0.0s done
+#13 CACHED
+
+#14 [frontend internal] load build context
+#14 transferring context: 1.54MB 0.4s done
+#14 DONE 0.4s
+
+#15 [frontend builder 3/6] COPY package*.json ./
+#15 DONE 0.0s
+
+#16 [worker 2/6] RUN apt-get update && apt-get install -y     nmap     libpq-dev     && rm -rf /var/lib/apt/lists/*
+#16 0.307 Hit:1 http://deb.debian.org/debian trixie InRelease
+#16 0.340 Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+#16 0.474 Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+#16 0.560 Get:4 http://deb.debian.org/debian trixie/main arm64 Packages [9607 kB]
+#16 1.089 Get:5 http://deb.debian.org/debian trixie-updates/main arm64 Packages [5404 B]
+#16 1.139 Get:6 http://deb.debian.org/debian-security trixie-security/main arm64 Packages [114 kB]
+#16 1.696 Fetched 9817 kB in 2s (6301 kB/s)
+#16 1.696 Reading package lists...
+#16 2.047 Reading package lists...
+#16 2.349 Building dependency tree...
+#16 2.442 Reading state information...
+#16 2.551 libpq-dev is already the newest version (17.9-0+deb13u1).
+#16 2.551 The following additional packages will be installed:
+#16 2.551   dbus dbus-bin dbus-daemon dbus-session-bus-common dbus-system-bus-common
+#16 2.552   libapparmor1 libblas3 libdbus-1-3 liblinear4 liblua5.4-0 libpcap0.8t64
+#16 2.552   nmap-common
+#16 2.552 Suggested packages:
+#16 2.552   default-dbus-session-bus | dbus-session-bus liblinear-tools liblinear-dev
+#16 2.552   ncat ndiff zenmap
+#16 2.594 The following NEW packages will be installed:
+#16 2.594   dbus dbus-bin dbus-daemon dbus-session-bus-common dbus-system-bus-common
+#16 2.594   libapparmor1 libblas3 libdbus-1-3 liblinear4 liblua5.4-0 libpcap0.8t64 nmap
+#16 2.594   nmap-common
+#16 2.708 0 upgraded, 13 newly installed, 0 to remove and 15 not upgraded.
+#16 2.708 Need to get 7315 kB of archives.
+#16 2.708 After this operation, 30.9 MB of additional disk space will be used.
+#16 2.708 Get:1 http://deb.debian.org/debian trixie/main arm64 libdbus-1-3 arm64 1.16.2-2 [169 kB]
+#16 3.243 Get:2 http://deb.debian.org/debian trixie/main arm64 dbus-bin arm64 1.16.2-2 [78.8 kB]
+#16 3.497 Get:3 http://deb.debian.org/debian trixie/main arm64 dbus-session-bus-common all 1.16.2-2 [52.3 kB]
+#16 3.637 Get:4 http://deb.debian.org/debian trixie/main arm64 libapparmor1 arm64 4.1.0-1 [42.9 kB]
+#16 3.686 Get:5 http://deb.debian.org/debian trixie/main arm64 dbus-daemon arm64 1.16.2-2 [152 kB]
+#16 3.975 Get:6 http://deb.debian.org/debian trixie/main arm64 dbus-system-bus-common all 1.16.2-2 [53.5 kB]
+#16 4.093 Get:7 http://deb.debian.org/debian trixie/main arm64 dbus arm64 1.16.2-2 [70.7 kB]
+#16 4.236 Get:8 http://deb.debian.org/debian trixie/main arm64 libblas3 arm64 3.12.1-6 [104 kB]
+#16 4.579 Get:9 http://deb.debian.org/debian trixie/main arm64 liblinear4 arm64 2.3.0+dfsg-5+b2 [38.0 kB]
+#16 4.622 Get:10 http://deb.debian.org/debian trixie/main arm64 liblua5.4-0 arm64 5.4.7-1+b2 [134 kB]
+#16 4.894 Get:11 http://deb.debian.org/debian trixie/main arm64 libpcap0.8t64 arm64 1.10.5-2 [160 kB]
+#16 5.227 Get:12 http://deb.debian.org/debian trixie/main arm64 nmap-common all 7.95+dfsg-3 [4392 kB]
+#16 9.043 Get:13 http://deb.debian.org/debian trixie/main arm64 nmap arm64 7.95+dfsg-3 [1869 kB]
+#16 ...
+
+#17 [frontend builder 4/6] RUN npm install --legacy-peer-deps
+#17 0.344 npm warn EBADENGINE Unsupported engine {
+#17 0.344 npm warn EBADENGINE   package: '@csstools/css-calc@3.0.1',
+#17 0.344 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.344 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.344 npm warn EBADENGINE }
+#17 0.344 npm warn EBADENGINE Unsupported engine {
+#17 0.344 npm warn EBADENGINE   package: '@csstools/css-parser-algorithms@4.0.0',
+#17 0.344 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.344 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.344 npm warn EBADENGINE }
+#17 0.345 npm warn EBADENGINE Unsupported engine {
+#17 0.345 npm warn EBADENGINE   package: '@csstools/css-tokenizer@4.0.0',
+#17 0.345 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.345 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.345 npm warn EBADENGINE }
+#17 0.345 npm warn EBADENGINE Unsupported engine {
+#17 0.345 npm warn EBADENGINE   package: '@csstools/media-query-list-parser@5.0.0',
+#17 0.345 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.345 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.345 npm warn EBADENGINE }
+#17 0.346 npm warn EBADENGINE Unsupported engine {
+#17 0.346 npm warn EBADENGINE   package: '@eslint/config-array@0.23.1',
+#17 0.346 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.346 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.346 npm warn EBADENGINE }
+#17 0.346 npm warn EBADENGINE Unsupported engine {
+#17 0.346 npm warn EBADENGINE   package: '@eslint/config-helpers@0.5.2',
+#17 0.346 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.346 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.346 npm warn EBADENGINE }
+#17 0.346 npm warn EBADENGINE Unsupported engine {
+#17 0.346 npm warn EBADENGINE   package: '@eslint/core@1.1.0',
+#17 0.346 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.346 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.346 npm warn EBADENGINE }
+#17 0.347 npm warn EBADENGINE Unsupported engine {
+#17 0.347 npm warn EBADENGINE   package: '@eslint/js@10.0.1',
+#17 0.347 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.347 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.347 npm warn EBADENGINE }
+#17 0.347 npm warn EBADENGINE Unsupported engine {
+#17 0.347 npm warn EBADENGINE   package: '@eslint/object-schema@3.0.1',
+#17 0.347 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.347 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.347 npm warn EBADENGINE }
+#17 0.347 npm warn EBADENGINE Unsupported engine {
+#17 0.347 npm warn EBADENGINE   package: '@eslint/plugin-kit@0.6.0',
+#17 0.347 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.347 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.347 npm warn EBADENGINE }
+#17 0.348 npm warn EBADENGINE Unsupported engine {
+#17 0.348 npm warn EBADENGINE   package: '@isaacs/balanced-match@4.0.1',
+#17 0.348 npm warn EBADENGINE   required: { node: '20 || >=22' },
+#17 0.348 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.348 npm warn EBADENGINE }
+#17 0.348 npm warn EBADENGINE Unsupported engine {
+#17 0.348 npm warn EBADENGINE   package: '@isaacs/brace-expansion@5.0.1',
+#17 0.348 npm warn EBADENGINE   required: { node: '20 || >=22' },
+#17 0.348 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.348 npm warn EBADENGINE }
+#17 0.349 npm warn EBADENGINE Unsupported engine {
+#17 0.349 npm warn EBADENGINE   package: '@vitejs/plugin-react@5.1.4',
+#17 0.349 npm warn EBADENGINE   required: { node: '^20.19.0 || >=22.12.0' },
+#17 0.349 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.349 npm warn EBADENGINE }
+#17 0.349 npm warn EBADENGINE Unsupported engine {
+#17 0.349 npm warn EBADENGINE   package: 'eslint@10.0.0',
+#17 0.349 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.349 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.349 npm warn EBADENGINE }
+#17 0.350 npm warn EBADENGINE Unsupported engine {
+#17 0.350 npm warn EBADENGINE   package: 'eslint-scope@9.1.0',
+#17 0.350 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.350 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.350 npm warn EBADENGINE }
+#17 0.350 npm warn EBADENGINE Unsupported engine {
+#17 0.350 npm warn EBADENGINE   package: 'eslint-visitor-keys@5.0.0',
+#17 0.350 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.350 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.350 npm warn EBADENGINE }
+#17 0.350 npm warn EBADENGINE Unsupported engine {
+#17 0.350 npm warn EBADENGINE   package: 'espree@11.1.0',
+#17 0.350 npm warn EBADENGINE   required: { node: '^20.19.0 || ^22.13.0 || >=24' },
+#17 0.350 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.350 npm warn EBADENGINE }
+#17 0.350 npm warn EBADENGINE Unsupported engine {
+#17 0.350 npm warn EBADENGINE   package: 'globby@16.1.0',
+#17 0.350 npm warn EBADENGINE   required: { node: '>=20' },
+#17 0.350 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.350 npm warn EBADENGINE }
+#17 0.350 npm warn EBADENGINE Unsupported engine {
+#17 0.350 npm warn EBADENGINE   package: 'hashery@1.4.0',
+#17 0.350 npm warn EBADENGINE   required: { node: '>=20' },
+#17 0.350 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.350 npm warn EBADENGINE }
+#17 0.351 npm warn EBADENGINE Unsupported engine {
+#17 0.351 npm warn EBADENGINE   package: 'html-tags@5.1.0',
+#17 0.351 npm warn EBADENGINE   required: { node: '>=20.10' },
+#17 0.351 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.351 npm warn EBADENGINE }
+#17 0.351 npm warn EBADENGINE Unsupported engine {
+#17 0.351 npm warn EBADENGINE   package: 'meow@14.0.0',
+#17 0.351 npm warn EBADENGINE   required: { node: '>=20' },
+#17 0.351 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.351 npm warn EBADENGINE }
+#17 0.351 npm warn EBADENGINE Unsupported engine {
+#17 0.351 npm warn EBADENGINE   package: 'minimatch@10.1.2',
+#17 0.351 npm warn EBADENGINE   required: { node: '20 || >=22' },
+#17 0.351 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.351 npm warn EBADENGINE }
+#17 0.352 npm warn EBADENGINE Unsupported engine {
+#17 0.352 npm warn EBADENGINE   package: 'qified@0.6.0',
+#17 0.352 npm warn EBADENGINE   required: { node: '>=20' },
+#17 0.352 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.352 npm warn EBADENGINE }
+#17 0.352 npm warn EBADENGINE Unsupported engine {
+#17 0.352 npm warn EBADENGINE   package: 'react-router@7.13.0',
+#17 0.352 npm warn EBADENGINE   required: { node: '>=20.0.0' },
+#17 0.352 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.352 npm warn EBADENGINE }
+#17 0.352 npm warn EBADENGINE Unsupported engine {
+#17 0.352 npm warn EBADENGINE   package: 'react-router-dom@7.13.0',
+#17 0.352 npm warn EBADENGINE   required: { node: '>=20.0.0' },
+#17 0.352 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.352 npm warn EBADENGINE }
+#17 0.352 npm warn EBADENGINE Unsupported engine {
+#17 0.352 npm warn EBADENGINE   package: 'string-width@8.1.1',
+#17 0.352 npm warn EBADENGINE   required: { node: '>=20' },
+#17 0.352 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.352 npm warn EBADENGINE }
+#17 0.353 npm warn EBADENGINE Unsupported engine {
+#17 0.353 npm warn EBADENGINE   package: 'stylelint@17.2.0',
+#17 0.353 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.353 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.353 npm warn EBADENGINE }
+#17 0.353 npm warn EBADENGINE Unsupported engine {
+#17 0.353 npm warn EBADENGINE   package: 'stylelint-config-recommended@18.0.0',
+#17 0.353 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.353 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.353 npm warn EBADENGINE }
+#17 0.353 npm warn EBADENGINE Unsupported engine {
+#17 0.353 npm warn EBADENGINE   package: 'stylelint-config-standard@40.0.0',
+#17 0.353 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.353 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.353 npm warn EBADENGINE }
+#17 0.353 npm warn EBADENGINE Unsupported engine {
+#17 0.353 npm warn EBADENGINE   package: '@csstools/selector-resolve-nested@4.0.0',
+#17 0.353 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.353 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.353 npm warn EBADENGINE }
+#17 0.353 npm warn EBADENGINE Unsupported engine {
+#17 0.353 npm warn EBADENGINE   package: '@csstools/selector-specificity@6.0.0',
+#17 0.353 npm warn EBADENGINE   required: { node: '>=20.19.0' },
+#17 0.353 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.353 npm warn EBADENGINE }
+#17 0.354 npm warn EBADENGINE Unsupported engine {
+#17 0.354 npm warn EBADENGINE   package: 'supports-hyperlinks@4.4.0',
+#17 0.354 npm warn EBADENGINE   required: { node: '>=20' },
+#17 0.354 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.354 npm warn EBADENGINE }
+#17 0.354 npm warn EBADENGINE Unsupported engine {
+#17 0.354 npm warn EBADENGINE   package: 'unicorn-magic@0.4.0',
+#17 0.354 npm warn EBADENGINE   required: { node: '>=20' },
+#17 0.354 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.354 npm warn EBADENGINE }
+#17 0.354 npm warn EBADENGINE Unsupported engine {
+#17 0.354 npm warn EBADENGINE   package: 'vite@7.3.1',
+#17 0.354 npm warn EBADENGINE   required: { node: '^20.19.0 || >=22.12.0' },
+#17 0.354 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.354 npm warn EBADENGINE }
+#17 0.355 npm warn EBADENGINE Unsupported engine {
+#17 0.355 npm warn EBADENGINE   package: 'write-file-atomic@7.0.0',
+#17 0.355 npm warn EBADENGINE   required: { node: '^20.17.0 || >=22.9.0' },
+#17 0.355 npm warn EBADENGINE   current: { node: 'v18.20.8', npm: '10.8.2' }
+#17 0.355 npm warn EBADENGINE }
+#17 ...
+
+#16 [worker 2/6] RUN apt-get update && apt-get install -y     nmap     libpq-dev     && rm -rf /var/lib/apt/lists/*
+#16 9.701 debconf: unable to initialize frontend: Dialog
+#16 9.701 debconf: (TERM is not set, so the dialog frontend is not usable.)
+#16 9.701 debconf: falling back to frontend: Readline
+#16 9.704 debconf: unable to initialize frontend: Readline
+#16 9.704 debconf: (This frontend requires a controlling tty.)
+#16 9.704 debconf: falling back to frontend: Teletype
+#16 9.706 debconf: unable to initialize frontend: Teletype
+#16 9.706 debconf: (This frontend requires a controlling tty.)
+#16 9.706 debconf: falling back to frontend: Noninteractive
+#16 9.965 Fetched 7315 kB in 7s (1048 kB/s)
+#16 9.982 Selecting previously unselected package libdbus-1-3:arm64.
+#16 9.982 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 26854 files and directories currently installed.)
+#16 10.02 Preparing to unpack .../00-libdbus-1-3_1.16.2-2_arm64.deb ...
+#16 10.02 Unpacking libdbus-1-3:arm64 (1.16.2-2) ...
+#16 10.04 Selecting previously unselected package dbus-bin.
+#16 10.04 Preparing to unpack .../01-dbus-bin_1.16.2-2_arm64.deb ...
+#16 10.05 Unpacking dbus-bin (1.16.2-2) ...
+#16 10.06 Selecting previously unselected package dbus-session-bus-common.
+#16 10.07 Preparing to unpack .../02-dbus-session-bus-common_1.16.2-2_all.deb ...
+#16 10.07 Unpacking dbus-session-bus-common (1.16.2-2) ...
+#16 10.08 Selecting previously unselected package libapparmor1:arm64.
+#16 10.08 Preparing to unpack .../03-libapparmor1_4.1.0-1_arm64.deb ...
+#16 10.08 Unpacking libapparmor1:arm64 (4.1.0-1) ...
+#16 10.10 Selecting previously unselected package dbus-daemon.
+#16 10.10 Preparing to unpack .../04-dbus-daemon_1.16.2-2_arm64.deb ...
+#16 10.10 Unpacking dbus-daemon (1.16.2-2) ...
+#16 10.12 Selecting previously unselected package dbus-system-bus-common.
+#16 10.12 Preparing to unpack .../05-dbus-system-bus-common_1.16.2-2_all.deb ...
+#16 10.12 Unpacking dbus-system-bus-common (1.16.2-2) ...
+#16 10.14 Selecting previously unselected package dbus.
+#16 10.14 Preparing to unpack .../06-dbus_1.16.2-2_arm64.deb ...
+#16 10.14 Unpacking dbus (1.16.2-2) ...
+#16 10.16 Selecting previously unselected package libblas3:arm64.
+#16 10.16 Preparing to unpack .../07-libblas3_3.12.1-6_arm64.deb ...
+#16 10.16 Unpacking libblas3:arm64 (3.12.1-6) ...
+#16 10.17 Selecting previously unselected package liblinear4:arm64.
+#16 10.17 Preparing to unpack .../08-liblinear4_2.3.0+dfsg-5+b2_arm64.deb ...
+#16 10.18 Unpacking liblinear4:arm64 (2.3.0+dfsg-5+b2) ...
+#16 10.19 Selecting previously unselected package liblua5.4-0:arm64.
+#16 10.19 Preparing to unpack .../09-liblua5.4-0_5.4.7-1+b2_arm64.deb ...
+#16 10.19 Unpacking liblua5.4-0:arm64 (5.4.7-1+b2) ...
+#16 10.21 Selecting previously unselected package libpcap0.8t64:arm64.
+#16 10.21 Preparing to unpack .../10-libpcap0.8t64_1.10.5-2_arm64.deb ...
+#16 10.21 Unpacking libpcap0.8t64:arm64 (1.10.5-2) ...
+#16 10.23 Selecting previously unselected package nmap-common.
+#16 10.23 Preparing to unpack .../11-nmap-common_7.95+dfsg-3_all.deb ...
+#16 10.23 Unpacking nmap-common (7.95+dfsg-3) ...
+#16 10.42 Selecting previously unselected package nmap.
+#16 10.42 Preparing to unpack .../12-nmap_7.95+dfsg-3_arm64.deb ...
+#16 10.42 Unpacking nmap (7.95+dfsg-3) ...
+#16 10.50 Setting up libapparmor1:arm64 (4.1.0-1) ...
+#16 10.50 Setting up libblas3:arm64 (3.12.1-6) ...
+#16 10.51 update-alternatives: using /usr/lib/aarch64-linux-gnu/blas/libblas.so.3 to provide /usr/lib/aarch64-linux-gnu/libblas.so.3 (libblas.so.3-aarch64-linux-gnu) in auto mode
+#16 10.51 Setting up libdbus-1-3:arm64 (1.16.2-2) ...
+#16 10.52 Setting up nmap-common (7.95+dfsg-3) ...
+#16 10.52 Setting up dbus-session-bus-common (1.16.2-2) ...
+#16 10.53 Setting up liblua5.4-0:arm64 (5.4.7-1+b2) ...
+#16 10.53 Setting up libpcap0.8t64:arm64 (1.10.5-2) ...
+#16 10.53 Setting up dbus-system-bus-common (1.16.2-2) ...
+#16 10.59 Setting up dbus-bin (1.16.2-2) ...
+#16 10.59 Setting up dbus-daemon (1.16.2-2) ...
+#16 10.60 Setting up liblinear4:arm64 (2.3.0+dfsg-5+b2) ...
+#16 10.60 Setting up dbus (1.16.2-2) ...
+#16 10.62 invoke-rc.d: could not determine current runlevel
+#16 10.62 invoke-rc.d: policy-rc.d denied execution of start.
+#16 10.62 Setting up nmap (7.95+dfsg-3) ...
+#16 10.62 Processing triggers for libc-bin (2.41-12+deb13u2) ...
+#16 DONE 10.9s
+
+#18 [api 3/6] WORKDIR /app
+#18 DONE 0.0s
+
+#19 [worker 4/6] COPY requirements.txt .
+#19 DONE 0.0s
+
+#20 [api 5/6] RUN pip install --upgrade pip &&     pip install --no-cache-dir --default-timeout=100 -r requirements.txt
+#20 ...
+
+#17 [frontend builder 4/6] RUN npm install --legacy-peer-deps
+#17 10.72 
+#17 10.72 added 407 packages, and audited 408 packages in 11s
+#17 10.72 
+#17 10.72 91 packages are looking for funding
+#17 10.72   run `npm fund` for details
+#17 10.73 
+#17 10.73 4 vulnerabilities (1 moderate, 3 high)
+#17 10.73 
+#17 10.73 To address all issues, run:
+#17 10.73   npm audit fix
+#17 10.73 
+#17 10.73 Run `npm audit` for details.
+#17 10.73 npm notice
+#17 10.73 npm notice New major version of npm available! 10.8.2 -> 11.12.0
+#17 10.73 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.0
+#17 10.73 npm notice To update run: npm install -g npm@11.12.0
+#17 10.73 npm notice
+#17 DONE 10.8s
+
+#21 [frontend builder 5/6] COPY . .
+#21 DONE 1.8s
+
+#20 [api 5/6] RUN pip install --upgrade pip &&     pip install --no-cache-dir --default-timeout=100 -r requirements.txt
+#20 0.915 Requirement already satisfied: pip in /usr/local/lib/python3.10/site-packages (23.0.1)
+#20 1.179 Collecting pip
+#20 1.359   Downloading pip-26.0.1-py3-none-any.whl (1.8 MB)
+#20 1.710      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 5.2 MB/s eta 0:00:00
+#20 1.739 Installing collected packages: pip
+#20 1.739   Attempting uninstall: pip
+#20 1.740     Found existing installation: pip 23.0.1
+#20 1.791     Uninstalling pip-23.0.1:
+#20 1.867       Successfully uninstalled pip-23.0.1
+#20 2.253 Successfully installed pip-26.0.1
+#20 2.253 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+#20 3.005 Collecting pydantic>=2.0 (from -r requirements.txt (line 1))
+#20 3.192   Downloading pydantic-2.12.5-py3-none-any.whl.metadata (90 kB)
+#20 3.413 Collecting langgraph (from -r requirements.txt (line 2))
+#20 3.455   Downloading langgraph-1.1.3-py3-none-any.whl.metadata (7.4 kB)
+#20 3.596 Collecting pytest (from -r requirements.txt (line 3))
+#20 3.649   Downloading pytest-9.0.2-py3-none-any.whl.metadata (7.6 kB)
+#20 3.739 Collecting pytest-asyncio (from -r requirements.txt (line 4))
+#20 3.788   Downloading pytest_asyncio-1.3.0-py3-none-any.whl.metadata (4.1 kB)
+#20 3.841 Collecting pytest-cov (from -r requirements.txt (line 5))
+#20 3.886   Downloading pytest_cov-7.1.0-py3-none-any.whl.metadata (32 kB)
+#20 3.947 Collecting pytest-timeout (from -r requirements.txt (line 6))
+#20 3.989   Downloading pytest_timeout-2.4.0-py3-none-any.whl.metadata (20 kB)
+#20 4.152 Collecting mypy (from -r requirements.txt (line 7))
+#20 4.201   Downloading mypy-1.19.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (2.2 kB)
+#20 4.321 Collecting python-nmap (from -r requirements.txt (line 8))
+#20 4.372   Downloading python-nmap-0.7.1.tar.gz (44 kB)
+#20 4.415   Installing build dependencies: started
+#20 ...
+
+#22 [frontend builder 6/6] RUN npm run build
+#22 0.189 
+#22 0.189 > frontend@0.0.0 build
+#22 0.189 > vite build
+#22 0.189 
+#22 0.216 You are using Node.js 18.20.8. Vite requires Node.js version 20.19+ or 22.12+. Please upgrade your Node.js version.
+#22 0.303 vite v7.3.1 building client environment for production...
+#22 0.443 transforming...
+#22 3.205 ✓ 2869 modules transformed.
+#22 3.520 rendering chunks...
+#22 3.530 computing gzip size...
+#22 3.548 dist/index.html                   0.47 kB │ gzip:   0.30 kB
+#22 3.548 dist/assets/index-DX6xvRmw.css   67.14 kB │ gzip:  11.80 kB
+#22 3.548 dist/assets/index-aiFIu-Kl.js   975.75 kB │ gzip: 296.41 kB
+#22 3.548 
+#22 3.548 (!) Some chunks are larger than 500 kB after minification. Consider:
+#22 3.548 - Using dynamic import() to code-split the application
+#22 3.548 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+#22 3.548 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+#22 3.548 ✓ built in 3.23s
+#22 DONE 3.6s
+
+#20 [api 5/6] RUN pip install --upgrade pip &&     pip install --no-cache-dir --default-timeout=100 -r requirements.txt
+#20 5.563   Installing build dependencies: finished with status 'done'
+#20 5.563   Getting requirements to build wheel: started
+#20 ...
+
+#23 [frontend stage-1 2/3] COPY --from=builder /app/dist /usr/share/nginx/html
+#23 DONE 0.0s
+
+#24 [frontend stage-1 3/3] COPY nginx.conf /etc/nginx/conf.d/default.conf
+#24 DONE 0.0s
+
+#20 [api 5/6] RUN pip install --upgrade pip &&     pip install --no-cache-dir --default-timeout=100 -r requirements.txt
+#20 5.738   Getting requirements to build wheel: finished with status 'done'
+#20 5.738   Preparing metadata (pyproject.toml): started
+#20 5.823   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 ...
+
+#25 [frontend] exporting to image
+#25 exporting layers 0.0s done
+#25 exporting manifest sha256:99a2d59fc07f3713cad8a3a347350fd850bd474079b43d70036549c1d739cac9 done
+#25 exporting config sha256:5bf0a5be9463e578a3f592f234fa215aee5c0151f5cef6d8295bff1faa359c4d done
+#25 exporting attestation manifest sha256:05125daa1afc6822e8e35b4db6383619dc52a691fb66ca9ca0632e69da51a5fa done
+#25 exporting manifest list sha256:748eb91ac6c8728e58e5f3e8198b20917adfeb3c394ef356649962335fb8719e done
+#25 naming to docker.io/library/hipaasecsoc2-frontend:latest done
+#25 unpacking to docker.io/library/hipaasecsoc2-frontend:latest 0.0s done
+#25 DONE 0.1s
+
+#26 [frontend] resolving provenance for metadata file
+#26 DONE 0.0s
+
+#20 [api 5/6] RUN pip install --upgrade pip &&     pip install --no-cache-dir --default-timeout=100 -r requirements.txt
+#20 5.908 Collecting python-owasp-zap-v2.4 (from -r requirements.txt (line 9))
+#20 5.959   Downloading python_owasp_zap_v2.4-0.1.0-py2.py3-none-any.whl.metadata (398 bytes)
+#20 6.113 Collecting fastapi (from -r requirements.txt (line 10))
+#20 6.156   Downloading fastapi-0.135.2-py3-none-any.whl.metadata (28 kB)
+#20 6.299 Collecting uvicorn (from -r requirements.txt (line 11))
+#20 6.341   Downloading uvicorn-0.42.0-py3-none-any.whl.metadata (6.7 kB)
+#20 6.447 Collecting celery (from -r requirements.txt (line 12))
+#20 6.489   Downloading celery-5.6.2-py3-none-any.whl.metadata (23 kB)
+#20 6.575 Collecting redis (from -r requirements.txt (line 13))
+#20 6.620   Downloading redis-7.4.0-py3-none-any.whl.metadata (12 kB)
+#20 6.910 Collecting sqlalchemy (from -r requirements.txt (line 14))
+#20 6.952   Downloading sqlalchemy-2.0.48-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (9.5 kB)
+#20 7.096 Collecting alembic (from -r requirements.txt (line 15))
+#20 7.140   Downloading alembic-1.18.4-py3-none-any.whl.metadata (7.2 kB)
+#20 7.322 Collecting psycopg2-binary (from -r requirements.txt (line 16))
+#20 7.368   Downloading psycopg2_binary-2.9.11-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl.metadata (4.9 kB)
+#20 7.429 Collecting requests (from -r requirements.txt (line 17))
+#20 7.476   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+#20 7.630 Collecting prowler (from -r requirements.txt (line 18))
+#20 7.677   Downloading prowler-5.22.0-py3-none-any.whl.metadata (22 kB)
+#20 7.830 Collecting fpdf2 (from -r requirements.txt (line 19))
+#20 7.881   Downloading fpdf2-2.8.7-py3-none-any.whl.metadata (81 kB)
+#20 8.050 Collecting bcrypt<4.0.0 (from -r requirements.txt (line 20))
+#20 8.099   Downloading bcrypt-3.2.2-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl.metadata (8.3 kB)
+#20 8.252 Collecting python-multipart (from -r requirements.txt (line 23))
+#20 8.302   Downloading python_multipart-0.0.22-py3-none-any.whl.metadata (1.8 kB)
+#20 8.442 Collecting slowapi (from -r requirements.txt (line 24))
+#20 8.500   Downloading slowapi-0.1.9-py3-none-any.whl.metadata (3.0 kB)
+#20 8.656 Collecting python-jose[cryptography] (from -r requirements.txt (line 21))
+#20 8.705   Downloading python_jose-3.5.0-py2.py3-none-any.whl.metadata (5.5 kB)
+#20 8.858 Collecting passlib[bcrypt] (from -r requirements.txt (line 22))
+#20 8.914   Downloading passlib-1.7.4-py2.py3-none-any.whl.metadata (1.7 kB)
+#20 10.36 Collecting cffi>=1.1 (from bcrypt<4.0.0->-r requirements.txt (line 20))
+#20 10.41   Downloading cffi-2.0.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl.metadata (2.6 kB)
+#20 10.55 Collecting annotated-types>=0.6.0 (from pydantic>=2.0->-r requirements.txt (line 1))
+#20 10.60   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+#20 12.65 Collecting pydantic-core==2.41.5 (from pydantic>=2.0->-r requirements.txt (line 1))
+#20 12.71   Downloading pydantic_core-2.41.5-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (7.3 kB)
+#20 12.80 Collecting typing-extensions>=4.14.1 (from pydantic>=2.0->-r requirements.txt (line 1))
+#20 12.84   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+#20 12.99 Collecting typing-inspection>=0.4.2 (from pydantic>=2.0->-r requirements.txt (line 1))
+#20 13.05   Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+#20 13.27 Collecting langchain-core>=0.1 (from langgraph->-r requirements.txt (line 2))
+#20 13.32   Downloading langchain_core-1.2.21-py3-none-any.whl.metadata (4.4 kB)
+#20 13.47 Collecting langgraph-checkpoint<5.0.0,>=2.1.0 (from langgraph->-r requirements.txt (line 2))
+#20 13.53   Downloading langgraph_checkpoint-4.0.1-py3-none-any.whl.metadata (4.9 kB)
+#20 13.66 Collecting langgraph-prebuilt<1.1.0,>=1.0.8 (from langgraph->-r requirements.txt (line 2))
+#20 13.71   Downloading langgraph_prebuilt-1.0.8-py3-none-any.whl.metadata (5.2 kB)
+#20 13.85 Collecting langgraph-sdk<0.4.0,>=0.3.0 (from langgraph->-r requirements.txt (line 2))
+#20 13.90   Downloading langgraph_sdk-0.3.12-py3-none-any.whl.metadata (1.6 kB)
+#20 14.19 Collecting xxhash>=3.5.0 (from langgraph->-r requirements.txt (line 2))
+#20 14.24   Downloading xxhash-3.6.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (13 kB)
+#20 14.44 Collecting ormsgpack>=1.12.0 (from langgraph-checkpoint<5.0.0,>=2.1.0->langgraph->-r requirements.txt (line 2))
+#20 14.49   Downloading ormsgpack-1.12.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (3.2 kB)
+#20 14.62 Collecting httpx>=0.25.2 (from langgraph-sdk<0.4.0,>=0.3.0->langgraph->-r requirements.txt (line 2))
+#20 14.67   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+#20 15.27 Collecting orjson>=3.11.5 (from langgraph-sdk<0.4.0,>=0.3.0->langgraph->-r requirements.txt (line 2))
+#20 15.31   Downloading orjson-3.11.7-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (41 kB)
+#20 15.45 Collecting exceptiongroup>=1 (from pytest->-r requirements.txt (line 3))
+#20 15.50   Downloading exceptiongroup-1.3.1-py3-none-any.whl.metadata (6.7 kB)
+#20 15.60 Collecting iniconfig>=1.0.1 (from pytest->-r requirements.txt (line 3))
+#20 15.65   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+#20 15.81 Collecting packaging>=22 (from pytest->-r requirements.txt (line 3))
+#20 15.85   Downloading packaging-26.0-py3-none-any.whl.metadata (3.3 kB)
+#20 15.94 Collecting pluggy<2,>=1.5 (from pytest->-r requirements.txt (line 3))
+#20 15.99   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+#20 16.16 Collecting pygments>=2.7.2 (from pytest->-r requirements.txt (line 3))
+#20 16.21   Downloading pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+#20 16.36 Collecting tomli>=1 (from pytest->-r requirements.txt (line 3))
+#20 16.40   Downloading tomli-2.4.0-py3-none-any.whl.metadata (10 kB)
+#20 16.50 Collecting backports-asyncio-runner<2,>=1.1 (from pytest-asyncio->-r requirements.txt (line 4))
+#20 16.55   Downloading backports_asyncio_runner-1.2.0-py3-none-any.whl.metadata (7.5 kB)
+#20 18.56 Collecting coverage>=7.10.6 (from coverage[toml]>=7.10.6->pytest-cov->-r requirements.txt (line 5))
+#20 18.61   Downloading coverage-7.13.5-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (8.5 kB)
+#20 18.70 Collecting mypy_extensions>=1.0.0 (from mypy->-r requirements.txt (line 7))
+#20 18.75   Downloading mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+#20 18.91 Collecting pathspec>=0.9.0 (from mypy->-r requirements.txt (line 7))
+#20 18.97   Downloading pathspec-1.0.4-py3-none-any.whl.metadata (13 kB)
+#20 19.37 Collecting librt>=0.6.2 (from mypy->-r requirements.txt (line 7))
+#20 19.41   Downloading librt-0.8.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (1.3 kB)
+#20 19.46 Collecting zaproxy (from python-owasp-zap-v2.4->-r requirements.txt (line 9))
+#20 19.51   Downloading zaproxy-0.5.0-py3-none-any.whl.metadata (2.2 kB)
+#20 19.66 Collecting starlette>=0.46.0 (from fastapi->-r requirements.txt (line 10))
+#20 19.72   Downloading starlette-1.0.0-py3-none-any.whl.metadata (6.3 kB)
+#20 19.78 Collecting annotated-doc>=0.0.2 (from fastapi->-r requirements.txt (line 10))
+#20 19.84   Downloading annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+#20 19.95 Collecting click>=7.0 (from uvicorn->-r requirements.txt (line 11))
+#20 20.00   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+#20 20.21 Collecting h11>=0.8 (from uvicorn->-r requirements.txt (line 11))
+#20 20.25   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#20 20.37 Collecting billiard<5.0,>=4.2.1 (from celery->-r requirements.txt (line 12))
+#20 20.43   Downloading billiard-4.2.4-py3-none-any.whl.metadata (4.8 kB)
+#20 20.58 Collecting kombu>=5.6.0 (from celery->-r requirements.txt (line 12))
+#20 20.63   Downloading kombu-5.6.2-py3-none-any.whl.metadata (3.5 kB)
+#20 20.73 Collecting vine<6.0,>=5.1.0 (from celery->-r requirements.txt (line 12))
+#20 20.77   Downloading vine-5.1.0-py3-none-any.whl.metadata (2.7 kB)
+#20 20.90 Collecting click-didyoumean>=0.3.0 (from celery->-r requirements.txt (line 12))
+#20 20.95   Downloading click_didyoumean-0.3.1-py3-none-any.whl.metadata (3.9 kB)
+#20 21.08 Collecting click-repl>=0.2.0 (from celery->-r requirements.txt (line 12))
+#20 21.13   Downloading click_repl-0.3.0-py3-none-any.whl.metadata (3.6 kB)
+#20 21.22 Collecting click-plugins>=1.1.1 (from celery->-r requirements.txt (line 12))
+#20 21.27   Downloading click_plugins-1.1.1.2-py2.py3-none-any.whl.metadata (6.5 kB)
+#20 21.36 Collecting python-dateutil>=2.8.2 (from celery->-r requirements.txt (line 12))
+#20 21.41   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+#20 21.49 Collecting tzlocal (from celery->-r requirements.txt (line 12))
+#20 21.54   Downloading tzlocal-5.3.1-py3-none-any.whl.metadata (7.6 kB)
+#20 21.63 Collecting async-timeout>=4.0.3 (from redis->-r requirements.txt (line 13))
+#20 21.68   Downloading async_timeout-5.0.1-py3-none-any.whl.metadata (5.1 kB)
+#20 22.09 Collecting greenlet>=1 (from sqlalchemy->-r requirements.txt (line 14))
+#20 22.14   Downloading greenlet-3.3.2-cp310-cp310-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl.metadata (3.7 kB)
+#20 22.28 Collecting Mako (from alembic->-r requirements.txt (line 15))
+#20 22.32   Downloading mako-1.3.10-py3-none-any.whl.metadata (2.9 kB)
+#20 22.68 Collecting charset_normalizer<4,>=2 (from requests->-r requirements.txt (line 17))
+#20 22.72   Downloading charset_normalizer-3.4.6-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (40 kB)
+#20 23.23 Collecting idna<4,>=2.5 (from requests->-r requirements.txt (line 17))
+#20 23.27   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+#20 23.40 Collecting urllib3<3,>=1.21.1 (from requests->-r requirements.txt (line 17))
+#20 23.45   Downloading urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+#20 23.57 Collecting certifi>=2017.4.17 (from requests->-r requirements.txt (line 17))
+#20 23.62   Downloading certifi-2026.2.25-py3-none-any.whl.metadata (2.5 kB)
+#20 23.72 Collecting alibabacloud-gateway-oss-util==0.0.3 (from prowler->-r requirements.txt (line 18))
+#20 23.78   Downloading alibabacloud_gateway_oss_util-0.0.3.tar.gz (105 kB)
+#20 24.13   Installing build dependencies: started
+#20 24.59   Installing build dependencies: finished with status 'done'
+#20 24.59   Getting requirements to build wheel: started
+#20 24.72   Getting requirements to build wheel: finished with status 'done'
+#20 24.72   Preparing metadata (pyproject.toml): started
+#20 24.79   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 24.89 Collecting alibabacloud-rds20140815==12.0.0 (from prowler->-r requirements.txt (line 18))
+#20 24.93   Downloading alibabacloud_rds20140815-12.0.0-py3-none-any.whl.metadata (2.3 kB)
+#20 25.07 Collecting alibabacloud-sls20201230==5.9.0 (from prowler->-r requirements.txt (line 18))
+#20 25.12   Downloading alibabacloud_sls20201230-5.9.0-py3-none-any.whl.metadata (2.3 kB)
+#20 25.17 Collecting alibabacloud_actiontrail20200706==2.4.1 (from prowler->-r requirements.txt (line 18))
+#20 25.22   Downloading alibabacloud_actiontrail20200706-2.4.1-py3-none-any.whl.metadata (2.4 kB)
+#20 25.28 Collecting alibabacloud_credentials==1.0.3 (from prowler->-r requirements.txt (line 18))
+#20 25.33   Downloading alibabacloud_credentials-1.0.3-py3-none-any.whl.metadata (29 kB)
+#20 25.50 Collecting alibabacloud_cs20151215==6.1.0 (from prowler->-r requirements.txt (line 18))
+#20 25.55   Downloading alibabacloud_cs20151215-6.1.0-py3-none-any.whl.metadata (2.3 kB)
+#20 25.67 Collecting alibabacloud_ecs20140526==7.2.5 (from prowler->-r requirements.txt (line 18))
+#20 25.72   Downloading alibabacloud_ecs20140526-7.2.5-py3-none-any.whl.metadata (2.3 kB)
+#20 25.85 Collecting alibabacloud_oss20190517==1.0.6 (from prowler->-r requirements.txt (line 18))
+#20 25.90   Downloading alibabacloud_oss20190517-1.0.6-py3-none-any.whl.metadata (2.3 kB)
+#20 26.05 Collecting alibabacloud_ram20150501==1.2.0 (from prowler->-r requirements.txt (line 18))
+#20 26.10   Downloading alibabacloud_ram20150501-1.2.0-py3-none-any.whl.metadata (2.3 kB)
+#20 26.24 Collecting alibabacloud_sas20181203==6.1.0 (from prowler->-r requirements.txt (line 18))
+#20 26.29   Downloading alibabacloud_sas20181203-6.1.0-py3-none-any.whl.metadata (2.3 kB)
+#20 26.34 Collecting alibabacloud_sts20150401==1.1.6 (from prowler->-r requirements.txt (line 18))
+#20 26.39   Downloading alibabacloud_sts20150401-1.1.6-py3-none-any.whl.metadata (2.3 kB)
+#20 26.52 Collecting alibabacloud_tea_openapi==0.4.1 (from prowler->-r requirements.txt (line 18))
+#20 26.57   Downloading alibabacloud_tea_openapi-0.4.1-py3-none-any.whl.metadata (2.2 kB)
+#20 26.70 Collecting alibabacloud_vpc20160428==6.13.0 (from prowler->-r requirements.txt (line 18))
+#20 26.77   Downloading alibabacloud_vpc20160428-6.13.0-py3-none-any.whl.metadata (2.3 kB)
+#20 26.88 Collecting alive-progress==3.3.0 (from prowler->-r requirements.txt (line 18))
+#20 26.93   Downloading alive_progress-3.3.0-py3-none-any.whl.metadata (72 kB)
+#20 27.15 Collecting awsipranges==0.3.3 (from prowler->-r requirements.txt (line 18))
+#20 27.19   Downloading awsipranges-0.3.3-py3-none-any.whl.metadata (5.7 kB)
+#20 27.29 Collecting azure-identity==1.21.0 (from prowler->-r requirements.txt (line 18))
+#20 27.34   Downloading azure_identity-1.21.0-py3-none-any.whl.metadata (81 kB)
+#20 27.52 Collecting azure-keyvault-keys==4.10.0 (from prowler->-r requirements.txt (line 18))
+#20 27.57   Downloading azure_keyvault_keys-4.10.0-py3-none-any.whl.metadata (47 kB)
+#20 27.72 Collecting azure-mgmt-apimanagement==5.0.0 (from prowler->-r requirements.txt (line 18))
+#20 27.76   Downloading azure_mgmt_apimanagement-5.0.0-py3-none-any.whl.metadata (38 kB)
+#20 28.00 Collecting azure-mgmt-applicationinsights==4.1.0 (from prowler->-r requirements.txt (line 18))
+#20 28.04   Downloading azure_mgmt_applicationinsights-4.1.0-py3-none-any.whl.metadata (16 kB)
+#20 28.27 Collecting azure-mgmt-authorization==4.0.0 (from prowler->-r requirements.txt (line 18))
+#20 28.32   Downloading azure_mgmt_authorization-4.0.0-py3-none-any.whl.metadata (18 kB)
+#20 28.77 Collecting azure-mgmt-compute==34.0.0 (from prowler->-r requirements.txt (line 18))
+#20 28.82   Downloading azure_mgmt_compute-34.0.0-py3-none-any.whl.metadata (72 kB)
+#20 29.09 Collecting azure-mgmt-containerregistry==12.0.0 (from prowler->-r requirements.txt (line 18))
+#20 29.14   Downloading azure_mgmt_containerregistry-12.0.0-py3-none-any.whl.metadata (24 kB)
+#20 29.38 Collecting azure-mgmt-containerservice==34.1.0 (from prowler->-r requirements.txt (line 18))
+#20 29.43   Downloading azure_mgmt_containerservice-34.1.0-py3-none-any.whl.metadata (55 kB)
+#20 29.63 Collecting azure-mgmt-cosmosdb==9.7.0 (from prowler->-r requirements.txt (line 18))
+#20 29.69   Downloading azure_mgmt_cosmosdb-9.7.0-py3-none-any.whl.metadata (112 kB)
+#20 29.89 Collecting azure-mgmt-databricks==2.0.0 (from prowler->-r requirements.txt (line 18))
+#20 29.94   Downloading azure_mgmt_databricks-2.0.0-py3-none-any.whl.metadata (8.5 kB)
+#20 30.08 Collecting azure-mgmt-keyvault==10.3.1 (from prowler->-r requirements.txt (line 18))
+#20 30.15   Downloading azure_mgmt_keyvault-10.3.1-py3-none-any.whl.metadata (15 kB)
+#20 30.24 Collecting azure-mgmt-loganalytics==12.0.0 (from prowler->-r requirements.txt (line 18))
+#20 30.30   Downloading azure_mgmt_loganalytics-12.0.0-py2.py3-none-any.whl.metadata (16 kB)
+#20 30.43 Collecting azure-mgmt-monitor==6.0.2 (from prowler->-r requirements.txt (line 18))
+#20 30.48   Downloading azure_mgmt_monitor-6.0.2-py3-none-any.whl.metadata (31 kB)
+#20 30.68 Collecting azure-mgmt-network==28.1.0 (from prowler->-r requirements.txt (line 18))
+#20 30.72   Downloading azure_mgmt_network-28.1.0-py3-none-any.whl.metadata (90 kB)
+#20 30.90 Collecting azure-mgmt-postgresqlflexibleservers==1.1.0 (from prowler->-r requirements.txt (line 18))
+#20 30.95   Downloading azure_mgmt_postgresqlflexibleservers-1.1.0-py3-none-any.whl.metadata (7.6 kB)
+#20 31.11 Collecting azure-mgmt-rdbms==10.1.0 (from prowler->-r requirements.txt (line 18))
+#20 31.15   Downloading azure_mgmt_rdbms-10.1.0-py3-none-any.whl.metadata (20 kB)
+#20 31.26 Collecting azure-mgmt-recoveryservices==3.1.0 (from prowler->-r requirements.txt (line 18))
+#20 31.31   Downloading azure_mgmt_recoveryservices-3.1.0-py3-none-any.whl.metadata (13 kB)
+#20 31.42 Collecting azure-mgmt-recoveryservicesbackup==9.2.0 (from prowler->-r requirements.txt (line 18))
+#20 31.47   Downloading azure_mgmt_recoveryservicesbackup-9.2.0-py3-none-any.whl.metadata (37 kB)
+#20 31.64 Collecting azure-mgmt-resource==23.3.0 (from prowler->-r requirements.txt (line 18))
+#20 31.69   Downloading azure_mgmt_resource-23.3.0-py3-none-any.whl.metadata (41 kB)
+#20 31.80 Collecting azure-mgmt-search==9.1.0 (from prowler->-r requirements.txt (line 18))
+#20 31.85   Downloading azure_mgmt_search-9.1.0-py3-none-any.whl.metadata (10 kB)
+#20 31.96 Collecting azure-mgmt-security==7.0.0 (from prowler->-r requirements.txt (line 18))
+#20 32.01   Downloading azure_mgmt_security-7.0.0-py3-none-any.whl.metadata (34 kB)
+#20 32.17 Collecting azure-mgmt-sql==3.0.1 (from prowler->-r requirements.txt (line 18))
+#20 32.22   Downloading azure_mgmt_sql-3.0.1-py2.py3-none-any.whl.metadata (46 kB)
+#20 32.37 Collecting azure-mgmt-storage==22.1.1 (from prowler->-r requirements.txt (line 18))
+#20 32.41   Downloading azure_mgmt_storage-22.1.1-py3-none-any.whl.metadata (33 kB)
+#20 32.54 Collecting azure-mgmt-subscription==3.1.1 (from prowler->-r requirements.txt (line 18))
+#20 32.59   Downloading azure_mgmt_subscription-3.1.1-py3-none-any.whl.metadata (9.5 kB)
+#20 32.70 Collecting azure-mgmt-web==8.0.0 (from prowler->-r requirements.txt (line 18))
+#20 32.75   Downloading azure_mgmt_web-8.0.0-py3-none-any.whl.metadata (88 kB)
+#20 32.94 Collecting azure-monitor-query==2.0.0 (from prowler->-r requirements.txt (line 18))
+#20 33.00   Downloading azure_monitor_query-2.0.0-py3-none-any.whl.metadata (20 kB)
+#20 33.16 Collecting azure-storage-blob==12.24.1 (from prowler->-r requirements.txt (line 18))
+#20 33.21   Downloading azure_storage_blob-12.24.1-py3-none-any.whl.metadata (26 kB)
+#20 34.12 Collecting boto3==1.40.61 (from prowler->-r requirements.txt (line 18))
+#20 34.17   Downloading boto3-1.40.61-py3-none-any.whl.metadata (6.6 kB)
+#20 34.86 Collecting botocore==1.40.61 (from prowler->-r requirements.txt (line 18))
+#20 34.90   Downloading botocore-1.40.61-py3-none-any.whl.metadata (5.7 kB)
+#20 35.01 Collecting cloudflare==4.3.1 (from prowler->-r requirements.txt (line 18))
+#20 35.06   Downloading cloudflare-4.3.1-py3-none-any.whl.metadata (15 kB)
+#20 35.17 Collecting colorama==0.4.6 (from prowler->-r requirements.txt (line 18))
+#20 35.22   Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+#20 35.60 Collecting cryptography==44.0.3 (from prowler->-r requirements.txt (line 18))
+#20 35.65   Downloading cryptography-44.0.3-cp39-abi3-manylinux_2_34_aarch64.whl.metadata (5.7 kB)
+#20 35.79 Collecting dash==3.1.1 (from prowler->-r requirements.txt (line 18))
+#20 35.83   Downloading dash-3.1.1-py3-none-any.whl.metadata (10 kB)
+#20 35.98 Collecting dash-bootstrap-components==2.0.3 (from prowler->-r requirements.txt (line 18))
+#20 36.02   Downloading dash_bootstrap_components-2.0.3-py3-none-any.whl.metadata (18 kB)
+#20 36.16 Collecting defusedxml>=0.7.1 (from prowler->-r requirements.txt (line 18))
+#20 36.22   Downloading defusedxml-0.7.1-py2.py3-none-any.whl.metadata (32 kB)
+#20 36.38 Collecting detect-secrets==1.5.0 (from prowler->-r requirements.txt (line 18))
+#20 36.43   Downloading detect_secrets-1.5.0-py3-none-any.whl.metadata (23 kB)
+#20 36.77 Collecting dulwich==0.23.0 (from prowler->-r requirements.txt (line 18))
+#20 36.92   Downloading dulwich-0.23.0-cp310-cp310-manylinux_2_28_aarch64.whl.metadata (5.0 kB)
+#20 37.20 Collecting google-api-python-client==2.163.0 (from prowler->-r requirements.txt (line 18))
+#20 37.25   Downloading google_api_python_client-2.163.0-py2.py3-none-any.whl.metadata (6.7 kB)
+#20 37.33 Collecting google-auth-httplib2<0.3,>=0.1 (from prowler->-r requirements.txt (line 18))
+#20 37.38   Downloading google_auth_httplib2-0.2.1-py3-none-any.whl.metadata (3.0 kB)
+#20 37.48 Collecting h2==4.3.0 (from prowler->-r requirements.txt (line 18))
+#20 37.53   Downloading h2-4.3.0-py3-none-any.whl.metadata (5.1 kB)
+#20 37.63 Collecting jsonschema==4.23.0 (from prowler->-r requirements.txt (line 18))
+#20 37.68   Downloading jsonschema-4.23.0-py3-none-any.whl.metadata (7.9 kB)
+#20 37.82 Collecting kubernetes==32.0.1 (from prowler->-r requirements.txt (line 18))
+#20 37.87   Downloading kubernetes-32.0.1-py2.py3-none-any.whl.metadata (1.7 kB)
+#20 37.96 Collecting markdown==3.9.0 (from prowler->-r requirements.txt (line 18))
+#20 38.01   Downloading markdown-3.9-py3-none-any.whl.metadata (5.1 kB)
+#20 38.10 Collecting microsoft-kiota-abstractions==1.9.2 (from prowler->-r requirements.txt (line 18))
+#20 38.14   Downloading microsoft_kiota_abstractions-1.9.2-py3-none-any.whl.metadata (3.4 kB)
+#20 38.27 Collecting msgraph-sdk==1.23.0 (from prowler->-r requirements.txt (line 18))
+#20 38.31   Downloading msgraph_sdk-1.23.0-py3-none-any.whl.metadata (13 kB)
+#20 38.97 Collecting numpy==2.0.2 (from prowler->-r requirements.txt (line 18))
+#20 39.02   Downloading numpy-2.0.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (62 kB)
+#20 39.33 Collecting oci==2.160.3 (from prowler->-r requirements.txt (line 18))
+#20 39.37   Downloading oci-2.160.3-py3-none-any.whl.metadata (5.8 kB)
+#20 39.53 Collecting openstacksdk==4.2.0 (from prowler->-r requirements.txt (line 18))
+#20 39.58   Downloading openstacksdk-4.2.0-py3-none-any.whl.metadata (12 kB)
+#20 39.97 Collecting pandas==2.2.3 (from prowler->-r requirements.txt (line 18))
+#20 40.02   Downloading pandas-2.2.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl.metadata (89 kB)
+#20 40.32 Collecting py-iam-expand==0.1.0 (from prowler->-r requirements.txt (line 18))
+#20 40.38   Downloading py_iam_expand-0.1.0-py3-none-any.whl.metadata (4.4 kB)
+#20 40.57 Collecting py-ocsf-models==0.8.1 (from prowler->-r requirements.txt (line 18))
+#20 40.62   Downloading py_ocsf_models-0.8.1-py3-none-any.whl.metadata (3.7 kB)
+#20 40.73 Collecting pygithub==2.8.0 (from prowler->-r requirements.txt (line 18))
+#20 40.78   Downloading pygithub-2.8.0-py3-none-any.whl.metadata (3.9 kB)
+#20 40.96 Collecting pytz==2025.1 (from prowler->-r requirements.txt (line 18))
+#20 41.00   Downloading pytz-2025.1-py2.py3-none-any.whl.metadata (22 kB)
+#20 41.14 Collecting schema==0.7.5 (from prowler->-r requirements.txt (line 18))
+#20 41.19   Downloading schema-0.7.5-py2.py3-none-any.whl.metadata (34 kB)
+#20 41.33 Collecting shodan==1.31.0 (from prowler->-r requirements.txt (line 18))
+#20 41.38   Downloading shodan-1.31.0.tar.gz (57 kB)
+#20 41.47   Installing build dependencies: started
+#20 41.92   Installing build dependencies: finished with status 'done'
+#20 41.92   Getting requirements to build wheel: started
+#20 42.05   Getting requirements to build wheel: finished with status 'done'
+#20 42.05   Preparing metadata (pyproject.toml): started
+#20 42.12   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 42.21 Collecting slack-sdk==3.39.0 (from prowler->-r requirements.txt (line 18))
+#20 42.25   Downloading slack_sdk-3.39.0-py2.py3-none-any.whl.metadata (15 kB)
+#20 42.38 Collecting tabulate==0.9.0 (from prowler->-r requirements.txt (line 18))
+#20 42.43   Downloading tabulate-0.9.0-py3-none-any.whl.metadata (34 kB)
+#20 42.58 Collecting uuid6==2024.7.10 (from prowler->-r requirements.txt (line 18))
+#20 42.63   Downloading uuid6-2024.7.10-py3-none-any.whl.metadata (8.6 kB)
+#20 42.76 Collecting alibabacloud-endpoint-util<1.0.0,>=0.0.4 (from alibabacloud_actiontrail20200706==2.4.1->prowler->-r requirements.txt (line 18))
+#20 42.81   Downloading alibabacloud_endpoint_util-0.0.4.tar.gz (2.8 kB)
+#20 42.82   Installing build dependencies: started
+#20 43.23   Installing build dependencies: finished with status 'done'
+#20 43.23   Getting requirements to build wheel: started
+#20 43.36   Getting requirements to build wheel: finished with status 'done'
+#20 43.36   Preparing metadata (pyproject.toml): started
+#20 43.43   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 43.51 Collecting alibabacloud-openapi-util<1.0.0,>=0.2.2 (from alibabacloud_actiontrail20200706==2.4.1->prowler->-r requirements.txt (line 18))
+#20 43.56   Downloading alibabacloud_openapi_util-0.2.4-py3-none-any.whl.metadata (1.8 kB)
+#20 43.66 Collecting alibabacloud-tea-util<1.0.0,>=0.3.13 (from alibabacloud_actiontrail20200706==2.4.1->prowler->-r requirements.txt (line 18))
+#20 43.71   Downloading alibabacloud_tea_util-0.3.14-py3-none-any.whl.metadata (2.0 kB)
+#20 43.81 Collecting alibabacloud-gateway-spi<1.0.0,>=0.0.2 (from alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 43.86   Downloading alibabacloud_gateway_spi-0.0.3.tar.gz (4.2 kB)
+#20 43.90   Installing build dependencies: started
+#20 44.36   Installing build dependencies: finished with status 'done'
+#20 44.36   Getting requirements to build wheel: started
+#20 44.49   Getting requirements to build wheel: finished with status 'done'
+#20 44.49   Preparing metadata (pyproject.toml): started
+#20 44.55   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 44.64 Collecting darabonba-core<2.0.0,>=1.0.3 (from alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 44.69   Downloading darabonba_core-1.0.5-py3-none-any.whl.metadata (2.6 kB)
+#20 44.83 Collecting APScheduler<4.0.0,>=3.10.0 (from alibabacloud_credentials==1.0.3->prowler->-r requirements.txt (line 18))
+#20 44.88   Downloading apscheduler-3.11.2-py3-none-any.whl.metadata (6.4 kB)
+#20 44.98 Collecting aiofiles<25.0.0,>=22.1.0 (from alibabacloud_credentials==1.0.3->prowler->-r requirements.txt (line 18))
+#20 45.03   Downloading aiofiles-24.1.0-py3-none-any.whl.metadata (10 kB)
+#20 45.13 Collecting alibabacloud-tea>=0.4.0 (from alibabacloud_credentials==1.0.3->prowler->-r requirements.txt (line 18))
+#20 45.18   Downloading alibabacloud-tea-0.4.3.tar.gz (8.8 kB)
+#20 45.23   Installing build dependencies: started
+#20 45.64   Installing build dependencies: finished with status 'done'
+#20 45.64   Getting requirements to build wheel: started
+#20 45.77   Getting requirements to build wheel: finished with status 'done'
+#20 45.77   Preparing metadata (pyproject.toml): started
+#20 45.84   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 45.92 Collecting alibabacloud-credentials-api<2.0.0,>=1.0.0 (from alibabacloud_credentials==1.0.3->prowler->-r requirements.txt (line 18))
+#20 45.97   Downloading alibabacloud-credentials-api-1.0.0.tar.gz (2.3 kB)
+#20 46.01   Installing build dependencies: started
+#20 46.46   Installing build dependencies: finished with status 'done'
+#20 46.46   Getting requirements to build wheel: started
+#20 46.59   Getting requirements to build wheel: finished with status 'done'
+#20 46.59   Preparing metadata (pyproject.toml): started
+#20 46.66   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 46.80 Collecting alibabacloud-gateway-oss<1.0.0,>=0.0.9 (from alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 46.85   Downloading alibabacloud_gateway_oss-0.0.24-py3-none-any.whl.metadata (1.7 kB)
+#20 47.05 Collecting alibabacloud-gateway-sls<1.0.0,>=0.3.0 (from alibabacloud-sls20201230==5.9.0->prowler->-r requirements.txt (line 18))
+#20 47.10   Downloading alibabacloud_gateway_sls-0.4.1-py3-none-any.whl.metadata (1.6 kB)
+#20 47.22 Collecting about-time==4.2.1 (from alive-progress==3.3.0->prowler->-r requirements.txt (line 18))
+#20 47.27   Downloading about_time-4.2.1-py3-none-any.whl.metadata (13 kB)
+#20 47.44 Collecting graphemeu==0.7.2 (from alive-progress==3.3.0->prowler->-r requirements.txt (line 18))
+#20 47.49   Downloading graphemeu-0.7.2-py3-none-any.whl.metadata (7.8 kB)
+#20 47.67 Collecting azure-core>=1.31.0 (from azure-identity==1.21.0->prowler->-r requirements.txt (line 18))
+#20 47.72   Downloading azure_core-1.39.0-py3-none-any.whl.metadata (48 kB)
+#20 48.07 Collecting msal>=1.30.0 (from azure-identity==1.21.0->prowler->-r requirements.txt (line 18))
+#20 48.12   Downloading msal-1.35.1-py3-none-any.whl.metadata (11 kB)
+#20 48.26 Collecting msal-extensions>=1.2.0 (from azure-identity==1.21.0->prowler->-r requirements.txt (line 18))
+#20 48.30   Downloading msal_extensions-1.3.1-py3-none-any.whl.metadata (7.8 kB)
+#20 48.42 Collecting isodate>=0.6.1 (from azure-keyvault-keys==4.10.0->prowler->-r requirements.txt (line 18))
+#20 48.47   Downloading isodate-0.7.2-py3-none-any.whl.metadata (11 kB)
+#20 48.60 Collecting azure-common>=1.1 (from azure-mgmt-apimanagement==5.0.0->prowler->-r requirements.txt (line 18))
+#20 48.64   Downloading azure_common-1.1.28-py2.py3-none-any.whl.metadata (5.0 kB)
+#20 48.75 Collecting azure-mgmt-core>=1.3.2 (from azure-mgmt-apimanagement==5.0.0->prowler->-r requirements.txt (line 18))
+#20 48.80   Downloading azure_mgmt_core-1.6.0-py3-none-any.whl.metadata (4.6 kB)
+#20 48.98 Collecting msrest>=0.6.21 (from azure-mgmt-loganalytics==12.0.0->prowler->-r requirements.txt (line 18))
+#20 49.02   Downloading msrest-0.7.1-py3-none-any.whl.metadata (21 kB)
+#20 49.24 Collecting jmespath<2.0.0,>=0.7.1 (from boto3==1.40.61->prowler->-r requirements.txt (line 18))
+#20 49.29   Downloading jmespath-1.1.0-py3-none-any.whl.metadata (7.6 kB)
+#20 49.41 Collecting s3transfer<0.15.0,>=0.14.0 (from boto3==1.40.61->prowler->-r requirements.txt (line 18))
+#20 49.46   Downloading s3transfer-0.14.0-py3-none-any.whl.metadata (1.7 kB)
+#20 49.58 Collecting anyio<5,>=3.5.0 (from cloudflare==4.3.1->prowler->-r requirements.txt (line 18))
+#20 49.63   Downloading anyio-4.13.0-py3-none-any.whl.metadata (4.5 kB)
+#20 49.73 Collecting distro<2,>=1.7.0 (from cloudflare==4.3.1->prowler->-r requirements.txt (line 18))
+#20 49.78   Downloading distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+#20 49.88 Collecting sniffio (from cloudflare==4.3.1->prowler->-r requirements.txt (line 18))
+#20 49.93   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+#20 50.07 Collecting Flask<3.2,>=1.0.4 (from dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 50.12   Downloading flask-3.1.3-py3-none-any.whl.metadata (3.2 kB)
+#20 50.25 Collecting Werkzeug<3.2 (from dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 50.30   Downloading werkzeug-3.1.7-py3-none-any.whl.metadata (4.0 kB)
+#20 50.54 Collecting plotly>=5.0.0 (from dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 50.58   Downloading plotly-6.6.0-py3-none-any.whl.metadata (8.5 kB)
+#20 50.74 Collecting importlib-metadata (from dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 50.79   Downloading importlib_metadata-9.0.0-py3-none-any.whl.metadata (4.5 kB)
+#20 50.86 Collecting retrying (from dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 50.90   Downloading retrying-1.4.2-py3-none-any.whl.metadata (5.5 kB)
+#20 51.02 Collecting nest-asyncio (from dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 51.07   Downloading nest_asyncio-1.6.0-py3-none-any.whl.metadata (2.8 kB)
+#20 51.11 Requirement already satisfied: setuptools in /usr/local/lib/python3.10/site-packages (from dash==3.1.1->prowler->-r requirements.txt (line 18)) (79.0.1)
+#20 51.31 Collecting pyyaml (from detect-secrets==1.5.0->prowler->-r requirements.txt (line 18))
+#20 51.35   Downloading pyyaml-6.0.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (2.4 kB)
+#20 51.47 Collecting httplib2<1.dev0,>=0.19.0 (from google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 51.52   Downloading httplib2-0.31.2-py3-none-any.whl.metadata (2.2 kB)
+#20 51.72 Collecting google-auth!=2.24.0,!=2.25.0,<3.0.0.dev0,>=1.32.0 (from google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 51.76   Downloading google_auth-2.49.1-py3-none-any.whl.metadata (6.2 kB)
+#20 51.96 Collecting google-api-core!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0.dev0,>=1.31.5 (from google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 52.00   Downloading google_api_core-2.30.0-py3-none-any.whl.metadata (3.1 kB)
+#20 52.09 Collecting uritemplate<5,>=3.0.1 (from google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 52.14   Downloading uritemplate-4.2.0-py3-none-any.whl.metadata (2.6 kB)
+#20 52.28 Collecting hyperframe<7,>=6.1 (from h2==4.3.0->prowler->-r requirements.txt (line 18))
+#20 52.32   Downloading hyperframe-6.1.0-py3-none-any.whl.metadata (4.3 kB)
+#20 52.41 Collecting hpack<5,>=4.1 (from h2==4.3.0->prowler->-r requirements.txt (line 18))
+#20 52.46   Downloading hpack-4.1.0-py3-none-any.whl.metadata (4.6 kB)
+#20 52.54 Collecting attrs>=22.2.0 (from jsonschema==4.23.0->prowler->-r requirements.txt (line 18))
+#20 52.59   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+#20 52.72 Collecting jsonschema-specifications>=2023.03.6 (from jsonschema==4.23.0->prowler->-r requirements.txt (line 18))
+#20 52.77   Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl.metadata (2.9 kB)
+#20 52.92 Collecting referencing>=0.28.4 (from jsonschema==4.23.0->prowler->-r requirements.txt (line 18))
+#20 52.97   Downloading referencing-0.37.0-py3-none-any.whl.metadata (2.8 kB)
+#20 53.97 Collecting rpds-py>=0.7.1 (from jsonschema==4.23.0->prowler->-r requirements.txt (line 18))
+#20 54.01   Downloading rpds_py-0.30.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (4.1 kB)
+#20 54.11 Collecting six>=1.9.0 (from kubernetes==32.0.1->prowler->-r requirements.txt (line 18))
+#20 54.15   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+#20 54.25 Collecting websocket-client!=0.40.0,!=0.41.*,!=0.42.*,>=0.32.0 (from kubernetes==32.0.1->prowler->-r requirements.txt (line 18))
+#20 54.29   Downloading websocket_client-1.9.0-py3-none-any.whl.metadata (8.3 kB)
+#20 54.42 Collecting requests-oauthlib (from kubernetes==32.0.1->prowler->-r requirements.txt (line 18))
+#20 54.47   Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl.metadata (11 kB)
+#20 54.61 Collecting oauthlib>=3.2.2 (from kubernetes==32.0.1->prowler->-r requirements.txt (line 18))
+#20 54.65   Downloading oauthlib-3.3.1-py3-none-any.whl.metadata (7.9 kB)
+#20 54.73 Collecting durationpy>=0.7 (from kubernetes==32.0.1->prowler->-r requirements.txt (line 18))
+#20 54.78   Downloading durationpy-0.10-py3-none-any.whl.metadata (340 bytes)
+#20 54.86 Collecting opentelemetry-api>=1.27.0 (from microsoft-kiota-abstractions==1.9.2->prowler->-r requirements.txt (line 18))
+#20 54.91   Downloading opentelemetry_api-1.40.0-py3-none-any.whl.metadata (1.5 kB)
+#20 55.01 Collecting opentelemetry-sdk>=1.27.0 (from microsoft-kiota-abstractions==1.9.2->prowler->-r requirements.txt (line 18))
+#20 55.06   Downloading opentelemetry_sdk-1.40.0-py3-none-any.whl.metadata (1.6 kB)
+#20 55.14 Collecting std-uritemplate>=2.0.0 (from microsoft-kiota-abstractions==1.9.2->prowler->-r requirements.txt (line 18))
+#20 55.18   Downloading std_uritemplate-2.0.8-py3-none-any.whl.metadata (8.6 kB)
+#20 55.31 Collecting microsoft-kiota-serialization-json<2.0.0,>=1.8.0 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 55.36   Downloading microsoft_kiota_serialization_json-1.9.10-py3-none-any.whl.metadata (3.4 kB)
+#20 55.42 Collecting microsoft-kiota-serialization-text<2.0.0,>=1.8.0 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 55.47   Downloading microsoft_kiota_serialization_text-1.9.10-py3-none-any.whl.metadata (3.4 kB)
+#20 55.60 Collecting microsoft-kiota-serialization-form<2.0.0,>=1.8.0 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 55.65   Downloading microsoft_kiota_serialization_form-1.9.10-py3-none-any.whl.metadata (3.5 kB)
+#20 55.76 Collecting microsoft-kiota-serialization-multipart<2.0.0,>=1.8.0 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 55.80   Downloading microsoft_kiota_serialization_multipart-1.9.10-py3-none-any.whl.metadata (3.5 kB)
+#20 55.93 Collecting msgraph_core>=1.3.1 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 55.98   Downloading msgraph_core-1.3.8-py3-none-any.whl.metadata (6.2 kB)
+#20 56.13 Collecting pyOpenSSL<25.0.0,>=17.5.0 (from oci==2.160.3->prowler->-r requirements.txt (line 18))
+#20 56.19   Downloading pyOpenSSL-24.3.0-py3-none-any.whl.metadata (15 kB)
+#20 56.33 Collecting circuitbreaker<3.0.0,>=1.3.1 (from oci==2.160.3->prowler->-r requirements.txt (line 18))
+#20 56.38   Downloading circuitbreaker-2.1.3-py3-none-any.whl.metadata (8.0 kB)
+#20 56.54 Collecting decorator>=4.4.1 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 56.58   Downloading decorator-5.2.1-py3-none-any.whl.metadata (3.9 kB)
+#20 56.72 Collecting dogpile.cache>=0.6.5 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 56.77   Downloading dogpile_cache-1.5.0-py3-none-any.whl.metadata (5.5 kB)
+#20 56.91 Collecting iso8601>=0.1.11 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 56.96   Downloading iso8601-2.1.0-py3-none-any.whl.metadata (3.7 kB)
+#20 57.05 Collecting jsonpatch!=1.20,>=1.16 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 57.10   Downloading jsonpatch-1.33-py2.py3-none-any.whl.metadata (3.0 kB)
+#20 57.32 Collecting keystoneauth1>=3.18.0 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 57.39   Downloading keystoneauth1-5.13.1-py3-none-any.whl.metadata (2.9 kB)
+#20 57.52 Collecting os-service-types>=1.7.0 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 57.57   Downloading os_service_types-1.8.2-py3-none-any.whl.metadata (1.9 kB)
+#20 57.75 Collecting pbr!=2.1.0,>=2.0.0 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 57.80   Downloading pbr-7.0.3-py2.py3-none-any.whl.metadata (3.8 kB)
+#20 57.92 Collecting platformdirs>=3 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 57.96   Downloading platformdirs-4.9.4-py3-none-any.whl.metadata (4.7 kB)
+#20 58.41 Collecting psutil>=3.2.2 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 58.46   Downloading psutil-7.2.2-cp36-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (22 kB)
+#20 58.61 Collecting requestsexceptions>=1.2.0 (from openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 58.66   Downloading requestsexceptions-1.4.0-py2.py3-none-any.whl.metadata (1.2 kB)
+#20 58.80 Collecting tzdata>=2022.7 (from pandas==2.2.3->prowler->-r requirements.txt (line 18))
+#20 58.85   Downloading tzdata-2025.3-py2.py3-none-any.whl.metadata (1.4 kB)
+#20 59.12 Collecting iamdata>=0.1.202504091 (from py-iam-expand==0.1.0->prowler->-r requirements.txt (line 18))
+#20 59.16   Downloading iamdata-0.1.202603241-py3-none-any.whl.metadata (3.5 kB)
+#20 59.30 Collecting email-validator==2.2.0 (from py-ocsf-models==0.8.1->prowler->-r requirements.txt (line 18))
+#20 59.35   Downloading email_validator-2.2.0-py3-none-any.whl.metadata (25 kB)
+#20 59.53 Collecting dnspython>=2.0.0 (from email-validator==2.2.0->py-ocsf-models==0.8.1->prowler->-r requirements.txt (line 18))
+#20 59.57   Downloading dnspython-2.8.0-py3-none-any.whl.metadata (5.7 kB)
+#20 59.73 Collecting pynacl>=1.4.0 (from pygithub==2.8.0->prowler->-r requirements.txt (line 18))
+#20 59.77   Downloading pynacl-1.6.2-cp38-abi3-manylinux_2_34_aarch64.whl.metadata (10.0 kB)
+#20 59.89 Collecting pyjwt>=2.4.0 (from pyjwt[crypto]>=2.4.0->pygithub==2.8.0->prowler->-r requirements.txt (line 18))
+#20 59.94   Downloading pyjwt-2.12.1-py3-none-any.whl.metadata (4.1 kB)
+#20 60.03 Collecting contextlib2>=0.5.5 (from schema==0.7.5->prowler->-r requirements.txt (line 18))
+#20 60.08   Downloading contextlib2-21.6.0-py2.py3-none-any.whl.metadata (4.1 kB)
+#20 60.25 Collecting XlsxWriter (from shodan==1.31.0->prowler->-r requirements.txt (line 18))
+#20 60.29   Downloading xlsxwriter-3.2.9-py3-none-any.whl.metadata (2.7 kB)
+#20 60.41 Collecting tldextract (from shodan==1.31.0->prowler->-r requirements.txt (line 18))
+#20 60.45   Downloading tldextract-5.3.1-py3-none-any.whl.metadata (7.3 kB)
+#20 60.59 Collecting alibabacloud-darabonba-array<1.0.0,>=0.1.0 (from alibabacloud-gateway-oss<1.0.0,>=0.0.9->alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 60.64   Downloading alibabacloud_darabonba_array-0.1.0.tar.gz (2.3 kB)
+#20 60.69   Installing build dependencies: started
+#20 61.16   Installing build dependencies: finished with status 'done'
+#20 61.16   Getting requirements to build wheel: started
+#20 61.29   Getting requirements to build wheel: finished with status 'done'
+#20 61.29   Preparing metadata (pyproject.toml): started
+#20 61.36   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 61.51 Collecting alibabacloud-darabonba-encode-util<1.0.0,>=0.0.2 (from alibabacloud-gateway-oss<1.0.0,>=0.0.9->alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 61.57   Downloading alibabacloud_darabonba_encode_util-0.0.2.tar.gz (4.0 kB)
+#20 61.57   Installing build dependencies: started
+#20 61.99   Installing build dependencies: finished with status 'done'
+#20 61.99   Getting requirements to build wheel: started
+#20 62.12   Getting requirements to build wheel: finished with status 'done'
+#20 62.12   Preparing metadata (pyproject.toml): started
+#20 62.18   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 62.33 Collecting alibabacloud-darabonba-map<1.0.0,>=0.0.1 (from alibabacloud-gateway-oss<1.0.0,>=0.0.9->alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 62.39   Downloading alibabacloud_darabonba_map-0.0.1.tar.gz (2.1 kB)
+#20 62.39   Installing build dependencies: started
+#20 62.85   Installing build dependencies: finished with status 'done'
+#20 62.85   Getting requirements to build wheel: started
+#20 62.97   Getting requirements to build wheel: finished with status 'done'
+#20 62.97   Preparing metadata (pyproject.toml): started
+#20 63.04   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 63.14 Collecting alibabacloud-darabonba-signature-util<1.0.0,>=0.0.4 (from alibabacloud-gateway-oss<1.0.0,>=0.0.9->alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 63.19   Downloading alibabacloud_darabonba_signature_util-0.0.4.tar.gz (4.2 kB)
+#20 63.23   Installing build dependencies: started
+#20 63.63   Installing build dependencies: finished with status 'done'
+#20 63.64   Getting requirements to build wheel: started
+#20 63.76   Getting requirements to build wheel: finished with status 'done'
+#20 63.76   Preparing metadata (pyproject.toml): started
+#20 63.83   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 63.93 Collecting alibabacloud-darabonba-string<1.0.0,>=0.0.4 (from alibabacloud-gateway-oss<1.0.0,>=0.0.9->alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 63.98   Downloading alibabacloud-darabonba-string-0.0.4.tar.gz (2.9 kB)
+#20 64.03   Installing build dependencies: started
+#20 64.48   Installing build dependencies: finished with status 'done'
+#20 64.48   Getting requirements to build wheel: started
+#20 64.60   Getting requirements to build wheel: finished with status 'done'
+#20 64.60   Preparing metadata (pyproject.toml): started
+#20 64.67   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 64.81 Collecting alibabacloud-darabonba-time<1.0.0,>=0.0.1 (from alibabacloud-gateway-oss<1.0.0,>=0.0.9->alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 64.86   Downloading alibabacloud_darabonba_time-0.0.1.tar.gz (2.9 kB)
+#20 64.91   Installing build dependencies: started
+#20 65.33   Installing build dependencies: finished with status 'done'
+#20 65.33   Getting requirements to build wheel: started
+#20 65.45   Getting requirements to build wheel: finished with status 'done'
+#20 65.45   Preparing metadata (pyproject.toml): started
+#20 65.52   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 65.52 INFO: pip is looking at multiple versions of alibabacloud-gateway-oss to determine which version is compatible with other requirements. This could take a while.
+#20 65.52 Collecting alibabacloud-gateway-oss<1.0.0,>=0.0.9 (from alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 65.57   Downloading alibabacloud_gateway_oss-0.0.23-py3-none-any.whl.metadata (1.7 kB)
+#20 65.62   Downloading alibabacloud_gateway_oss-0.0.22-py3-none-any.whl.metadata (1.7 kB)
+#20 65.71   Downloading alibabacloud_gateway_oss-0.0.21-py3-none-any.whl.metadata (1.7 kB)
+#20 65.84   Downloading alibabacloud_gateway_oss-0.0.20-py3-none-any.whl.metadata (1.7 kB)
+#20 65.89   Downloading alibabacloud_gateway_oss-0.0.19-py3-none-any.whl.metadata (1.7 kB)
+#20 65.98   Downloading alibabacloud_gateway_oss-0.0.17.tar.gz (8.0 kB)
+#20 66.03   Installing build dependencies: started
+#20 66.48   Installing build dependencies: finished with status 'done'
+#20 66.48   Getting requirements to build wheel: started
+#20 66.61   Getting requirements to build wheel: finished with status 'done'
+#20 66.61   Preparing metadata (pyproject.toml): started
+#20 66.67   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 66.78 Collecting alibabacloud_oss_util<1.0.0,>=0.0.5 (from alibabacloud-gateway-oss<1.0.0,>=0.0.9->alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 66.83   Downloading alibabacloud_oss_util-0.0.6.tar.gz (10 kB)
+#20 66.88   Installing build dependencies: started
+#20 67.33   Installing build dependencies: finished with status 'done'
+#20 67.33   Getting requirements to build wheel: started
+#20 67.45   Getting requirements to build wheel: finished with status 'done'
+#20 67.45   Preparing metadata (pyproject.toml): started
+#20 67.52   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 67.57 Collecting alibabacloud_tea_xml<1.0.0,>=0.0.2 (from alibabacloud-gateway-oss<1.0.0,>=0.0.9->alibabacloud_oss20190517==1.0.6->prowler->-r requirements.txt (line 18))
+#20 67.62   Downloading alibabacloud_tea_xml-0.0.3.tar.gz (3.5 kB)
+#20 67.62   Installing build dependencies: started
+#20 68.06   Installing build dependencies: finished with status 'done'
+#20 68.06   Getting requirements to build wheel: started
+#20 68.21   Getting requirements to build wheel: finished with status 'done'
+#20 68.21   Preparing metadata (pyproject.toml): started
+#20 68.28   Preparing metadata (pyproject.toml): finished with status 'done'
+#20 68.42 Collecting alibabacloud-gateway-sls-util<1.0.0,>=0.4.0 (from alibabacloud-gateway-sls<1.0.0,>=0.3.0->alibabacloud-sls20201230==5.9.0->prowler->-r requirements.txt (line 18))
+#20 68.48   Downloading alibabacloud_gateway_sls_util-0.4.0-py3-none-any.whl.metadata (1.1 kB)
+#20 68.64 Collecting aliyun-log-fastpb>=0.2.0 (from alibabacloud-gateway-sls-util<1.0.0,>=0.4.0->alibabacloud-gateway-sls<1.0.0,>=0.3.0->alibabacloud-sls20201230==5.9.0->prowler->-r requirements.txt (line 18))
+#20 68.74   Downloading aliyun_log_fastpb-0.2.0-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (2.8 kB)
+#20 68.96 Collecting lz4>=4.3.2 (from alibabacloud-gateway-sls-util<1.0.0,>=0.4.0->alibabacloud-gateway-sls<1.0.0,>=0.3.0->alibabacloud-sls20201230==5.9.0->prowler->-r requirements.txt (line 18))
+#20 69.01   Downloading lz4-4.4.5-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (3.8 kB)
+#20 69.32 Collecting zstd>=1.5.5.1 (from alibabacloud-gateway-sls-util<1.0.0,>=0.4.0->alibabacloud-gateway-sls<1.0.0,>=0.3.0->alibabacloud-sls20201230==5.9.0->prowler->-r requirements.txt (line 18))
+#20 69.37   Downloading zstd-1.5.7.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl.metadata (29 kB)
+#20 70.54 Collecting aiohttp<4.0.0,>=3.7.0 (from darabonba-core<2.0.0,>=1.0.3->alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 70.58   Downloading aiohttp-3.13.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (8.1 kB)
+#20 70.70 Collecting aiohappyeyeballs>=2.5.0 (from aiohttp<4.0.0,>=3.7.0->darabonba-core<2.0.0,>=1.0.3->alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 70.75   Downloading aiohappyeyeballs-2.6.1-py3-none-any.whl.metadata (5.9 kB)
+#20 70.89 Collecting aiosignal>=1.4.0 (from aiohttp<4.0.0,>=3.7.0->darabonba-core<2.0.0,>=1.0.3->alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 70.93   Downloading aiosignal-1.4.0-py3-none-any.whl.metadata (3.7 kB)
+#20 71.15 Collecting frozenlist>=1.1.1 (from aiohttp<4.0.0,>=3.7.0->darabonba-core<2.0.0,>=1.0.3->alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 71.39   Downloading frozenlist-1.8.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (20 kB)
+#20 71.85 Collecting multidict<7.0,>=4.5 (from aiohttp<4.0.0,>=3.7.0->darabonba-core<2.0.0,>=1.0.3->alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 71.89   Downloading multidict-6.7.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (5.3 kB)
+#20 72.02 Collecting propcache>=0.2.0 (from aiohttp<4.0.0,>=3.7.0->darabonba-core<2.0.0,>=1.0.3->alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 72.06   Downloading propcache-0.4.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (13 kB)
+#20 72.52 Collecting yarl<2.0,>=1.17.0 (from aiohttp<4.0.0,>=3.7.0->darabonba-core<2.0.0,>=1.0.3->alibabacloud_tea_openapi==0.4.1->prowler->-r requirements.txt (line 18))
+#20 72.56   Downloading yarl-1.23.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (79 kB)
+#20 72.84 Collecting blinker>=1.9.0 (from Flask<3.2,>=1.0.4->dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 72.88   Downloading blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+#20 73.02 Collecting itsdangerous>=2.2.0 (from Flask<3.2,>=1.0.4->dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 73.07   Downloading itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+#20 73.19 Collecting jinja2>=3.1.2 (from Flask<3.2,>=1.0.4->dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 73.23   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+#20 73.40 Collecting markupsafe>=2.1.1 (from Flask<3.2,>=1.0.4->dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 73.44   Downloading markupsafe-3.0.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (2.7 kB)
+#20 73.58 Collecting googleapis-common-protos<2.0.0,>=1.56.3 (from google-api-core!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0.dev0,>=1.31.5->google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 73.63   Downloading googleapis_common_protos-1.73.0-py3-none-any.whl.metadata (9.4 kB)
+#20 73.90 Collecting protobuf<7.0.0,>=4.25.8 (from google-api-core!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0.dev0,>=1.31.5->google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 73.94   Downloading protobuf-6.33.6-cp39-abi3-manylinux2014_aarch64.whl.metadata (593 bytes)
+#20 74.08 Collecting proto-plus<2.0.0,>=1.22.3 (from google-api-core!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,<3.0.0.dev0,>=1.31.5->google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 74.12   Downloading proto_plus-1.27.1-py3-none-any.whl.metadata (2.2 kB)
+#20 74.28 Collecting pyasn1-modules>=0.2.1 (from google-auth!=2.24.0,!=2.25.0,<3.0.0.dev0,>=1.32.0->google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 74.32   Downloading pyasn1_modules-0.4.2-py3-none-any.whl.metadata (3.5 kB)
+#20 74.46 Collecting pyparsing<4,>=3.1 (from httplib2<1.dev0,>=0.19.0->google-api-python-client==2.163.0->prowler->-r requirements.txt (line 18))
+#20 74.51   Downloading pyparsing-3.3.2-py3-none-any.whl.metadata (5.8 kB)
+#20 74.57 Collecting httpcore==1.* (from httpx>=0.25.2->langgraph-sdk<0.4.0,>=0.3.0->langgraph->-r requirements.txt (line 2))
+#20 74.61   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+#20 74.67 INFO: pip is looking at multiple versions of microsoft-kiota-serialization-form to determine which version is compatible with other requirements. This could take a while.
+#20 74.67 Collecting microsoft-kiota-serialization-form<2.0.0,>=1.8.0 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 74.72   Downloading microsoft_kiota_serialization_form-1.9.9-py3-none-any.whl.metadata (3.5 kB)
+#20 74.81   Downloading microsoft_kiota_serialization_form-1.9.8-py3-none-any.whl.metadata (3.5 kB)
+#20 74.86   Downloading microsoft_kiota_serialization_form-1.9.7-py3-none-any.whl.metadata (3.4 kB)
+#20 74.91   Downloading microsoft_kiota_serialization_form-1.9.6-py3-none-any.whl.metadata (3.4 kB)
+#20 75.01   Downloading microsoft_kiota_serialization_form-1.9.5-py3-none-any.whl.metadata (3.4 kB)
+#20 75.10   Downloading microsoft_kiota_serialization_form-1.9.4-py3-none-any.whl.metadata (3.4 kB)
+#20 75.15   Downloading microsoft_kiota_serialization_form-1.9.3-py3-none-any.whl.metadata (3.4 kB)
+#20 75.19 INFO: pip is still looking at multiple versions of microsoft-kiota-serialization-form to determine which version is compatible with other requirements. This could take a while.
+#20 75.24   Downloading microsoft_kiota_serialization_form-1.9.2-py3-none-any.whl.metadata (3.4 kB)
+#20 75.29 INFO: pip is looking at multiple versions of microsoft-kiota-serialization-json to determine which version is compatible with other requirements. This could take a while.
+#20 75.29 Collecting microsoft-kiota-serialization-json<2.0.0,>=1.8.0 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 75.33   Downloading microsoft_kiota_serialization_json-1.9.9-py3-none-any.whl.metadata (3.4 kB)
+#20 75.42   Downloading microsoft_kiota_serialization_json-1.9.8-py3-none-any.whl.metadata (3.4 kB)
+#20 75.51   Downloading microsoft_kiota_serialization_json-1.9.7-py3-none-any.whl.metadata (3.3 kB)
+#20 75.57   Downloading microsoft_kiota_serialization_json-1.9.6-py3-none-any.whl.metadata (3.3 kB)
+#20 75.65   Downloading microsoft_kiota_serialization_json-1.9.5-py3-none-any.whl.metadata (3.3 kB)
+#20 75.70   Downloading microsoft_kiota_serialization_json-1.9.4-py3-none-any.whl.metadata (3.3 kB)
+#20 75.75   Downloading microsoft_kiota_serialization_json-1.9.3-py3-none-any.whl.metadata (3.3 kB)
+#20 75.79 INFO: pip is still looking at multiple versions of microsoft-kiota-serialization-json to determine which version is compatible with other requirements. This could take a while.
+#20 75.84   Downloading microsoft_kiota_serialization_json-1.9.2-py3-none-any.whl.metadata (3.3 kB)
+#20 75.85 INFO: pip is looking at multiple versions of microsoft-kiota-serialization-multipart to determine which version is compatible with other requirements. This could take a while.
+#20 75.85 Collecting microsoft-kiota-serialization-multipart<2.0.0,>=1.8.0 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 75.90   Downloading microsoft_kiota_serialization_multipart-1.9.9-py3-none-any.whl.metadata (3.5 kB)
+#20 75.95   Downloading microsoft_kiota_serialization_multipart-1.9.8-py3-none-any.whl.metadata (3.5 kB)
+#20 76.00   Downloading microsoft_kiota_serialization_multipart-1.9.7-py3-none-any.whl.metadata (3.4 kB)
+#20 76.05   Downloading microsoft_kiota_serialization_multipart-1.9.6-py3-none-any.whl.metadata (3.4 kB)
+#20 76.14   Downloading microsoft_kiota_serialization_multipart-1.9.5-py3-none-any.whl.metadata (3.4 kB)
+#20 76.19   Downloading microsoft_kiota_serialization_multipart-1.9.4-py3-none-any.whl.metadata (3.4 kB)
+#20 76.24   Downloading microsoft_kiota_serialization_multipart-1.9.3-py3-none-any.whl.metadata (3.4 kB)
+#20 76.28 INFO: pip is still looking at multiple versions of microsoft-kiota-serialization-multipart to determine which version is compatible with other requirements. This could take a while.
+#20 76.33   Downloading microsoft_kiota_serialization_multipart-1.9.2-py3-none-any.whl.metadata (3.4 kB)
+#20 76.34 INFO: pip is looking at multiple versions of microsoft-kiota-serialization-text to determine which version is compatible with other requirements. This could take a while.
+#20 76.34 Collecting microsoft-kiota-serialization-text<2.0.0,>=1.8.0 (from msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 76.38   Downloading microsoft_kiota_serialization_text-1.9.9-py3-none-any.whl.metadata (3.4 kB)
+#20 76.47   Downloading microsoft_kiota_serialization_text-1.9.8-py3-none-any.whl.metadata (3.4 kB)
+#20 76.52   Downloading microsoft_kiota_serialization_text-1.9.7-py3-none-any.whl.metadata (3.3 kB)
+#20 76.57   Downloading microsoft_kiota_serialization_text-1.9.6-py3-none-any.whl.metadata (3.3 kB)
+#20 76.66   Downloading microsoft_kiota_serialization_text-1.9.5-py3-none-any.whl.metadata (3.3 kB)
+#20 76.71   Downloading microsoft_kiota_serialization_text-1.9.4-py3-none-any.whl.metadata (3.3 kB)
+#20 76.79   Downloading microsoft_kiota_serialization_text-1.9.3-py3-none-any.whl.metadata (3.3 kB)
+#20 76.83 INFO: pip is still looking at multiple versions of microsoft-kiota-serialization-text to determine which version is compatible with other requirements. This could take a while.
+#20 76.88   Downloading microsoft_kiota_serialization_text-1.9.2-py3-none-any.whl.metadata (3.3 kB)
+#20 77.29 Collecting Pillow!=9.2.*,>=8.3.2 (from fpdf2->-r requirements.txt (line 19))
+#20 77.34   Downloading pillow-12.1.1-cp310-cp310-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl.metadata (8.8 kB)
+#20 77.63 Collecting fonttools>=4.34.0 (from fpdf2->-r requirements.txt (line 19))
+#20 77.68   Downloading fonttools-4.62.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (117 kB)
+#20 77.96 Collecting ecdsa!=0.15 (from python-jose[cryptography]->-r requirements.txt (line 21))
+#20 78.01   Downloading ecdsa-0.19.1-py2.py3-none-any.whl.metadata (29 kB)
+#20 78.15 Collecting rsa!=4.1.1,!=4.4,<5.0,>=4.0 (from python-jose[cryptography]->-r requirements.txt (line 21))
+#20 78.19   Downloading rsa-4.9.1-py3-none-any.whl.metadata (5.6 kB)
+#20 78.34 Collecting pyasn1>=0.5.0 (from python-jose[cryptography]->-r requirements.txt (line 21))
+#20 78.38   Downloading pyasn1-0.6.3-py3-none-any.whl.metadata (8.4 kB)
+#20 78.52 Collecting limits>=2.3 (from slowapi->-r requirements.txt (line 24))
+#20 78.56   Downloading limits-5.8.0-py3-none-any.whl.metadata (10 kB)
+#20 78.64 Collecting pycparser (from cffi>=1.1->bcrypt<4.0.0->-r requirements.txt (line 20))
+#20 78.69   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+#20 78.78 Collecting prompt-toolkit>=3.0.36 (from click-repl>=0.2.0->celery->-r requirements.txt (line 12))
+#20 78.83   Downloading prompt_toolkit-3.0.52-py3-none-any.whl.metadata (6.4 kB)
+#20 78.95 Collecting stevedore>=3.0.0 (from dogpile.cache>=0.6.5->openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 79.00   Downloading stevedore-5.7.0-py3-none-any.whl.metadata (2.4 kB)
+#20 79.12 Collecting jsonpointer>=1.9 (from jsonpatch!=1.20,>=1.16->openstacksdk==4.2.0->prowler->-r requirements.txt (line 18))
+#20 79.17   Downloading jsonpointer-3.1.1-py3-none-any.whl.metadata (2.4 kB)
+#20 79.25 Collecting amqp<6.0.0,>=5.1.1 (from kombu>=5.6.0->celery->-r requirements.txt (line 12))
+#20 79.29   Downloading amqp-5.3.1-py3-none-any.whl.metadata (8.9 kB)
+#20 79.49 Collecting langsmith<1.0.0,>=0.3.45 (from langchain-core>=0.1->langgraph->-r requirements.txt (line 2))
+#20 79.54   Downloading langsmith-0.7.22-py3-none-any.whl.metadata (15 kB)
+#20 79.67 Collecting tenacity!=8.4.0,<10.0.0,>=8.1.0 (from langchain-core>=0.1->langgraph->-r requirements.txt (line 2))
+#20 79.72   Downloading tenacity-9.1.4-py3-none-any.whl.metadata (1.2 kB)
+#20 79.88 Collecting uuid-utils<1.0,>=0.12.0 (from langchain-core>=0.1->langgraph->-r requirements.txt (line 2))
+#20 79.93   Downloading uuid_utils-0.14.1-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (4.8 kB)
+#20 80.07 Collecting requests-toolbelt>=1.0.0 (from langsmith<1.0.0,>=0.3.45->langchain-core>=0.1->langgraph->-r requirements.txt (line 2))
+#20 80.11   Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+#20 80.31 Collecting zstandard>=0.23.0 (from langsmith<1.0.0,>=0.3.45->langchain-core>=0.1->langgraph->-r requirements.txt (line 2))
+#20 80.35   Downloading zstandard-0.25.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl.metadata (3.3 kB)
+#20 80.45 Collecting deprecated>=1.2 (from limits>=2.3->slowapi->-r requirements.txt (line 24))
+#20 80.50   Downloading deprecated-1.3.1-py2.py3-none-any.whl.metadata (5.9 kB)
+#20 81.06 Collecting wrapt<3,>=1.10 (from deprecated>=1.2->limits>=2.3->slowapi->-r requirements.txt (line 24))
+#20 81.11   Downloading wrapt-2.1.2-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl.metadata (7.4 kB)
+#20 81.22 Collecting microsoft-kiota-authentication-azure<2.0.0,>=1.8.0 (from msgraph_core>=1.3.1->msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 81.27   Downloading microsoft_kiota_authentication_azure-1.9.10-py3-none-any.whl.metadata (3.6 kB)
+#20 81.38 Collecting microsoft-kiota-http<2.0.0,>=1.8.0 (from msgraph_core>=1.3.1->msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 81.43   Downloading microsoft_kiota_http-1.9.10-py3-none-any.whl.metadata (3.4 kB)
+#20 81.49 INFO: pip is looking at multiple versions of microsoft-kiota-authentication-azure to determine which version is compatible with other requirements. This could take a while.
+#20 81.49 Collecting microsoft-kiota-authentication-azure<2.0.0,>=1.8.0 (from msgraph_core>=1.3.1->msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 81.53   Downloading microsoft_kiota_authentication_azure-1.9.9-py3-none-any.whl.metadata (3.6 kB)
+#20 81.68   Downloading microsoft_kiota_authentication_azure-1.9.8-py3-none-any.whl.metadata (3.6 kB)
+#20 81.80   Downloading microsoft_kiota_authentication_azure-1.9.7-py3-none-any.whl.metadata (3.5 kB)
+#20 81.91   Downloading microsoft_kiota_authentication_azure-1.9.6-py3-none-any.whl.metadata (3.5 kB)
+#20 82.00   Downloading microsoft_kiota_authentication_azure-1.9.5-py3-none-any.whl.metadata (3.5 kB)
+#20 82.10   Downloading microsoft_kiota_authentication_azure-1.9.4-py3-none-any.whl.metadata (3.5 kB)
+#20 82.18   Downloading microsoft_kiota_authentication_azure-1.9.3-py3-none-any.whl.metadata (3.5 kB)
+#20 82.22 INFO: pip is still looking at multiple versions of microsoft-kiota-authentication-azure to determine which version is compatible with other requirements. This could take a while.
+#20 82.27   Downloading microsoft_kiota_authentication_azure-1.9.2-py3-none-any.whl.metadata (3.5 kB)
+#20 82.32 INFO: pip is looking at multiple versions of microsoft-kiota-http to determine which version is compatible with other requirements. This could take a while.
+#20 82.32 Collecting microsoft-kiota-http<2.0.0,>=1.8.0 (from msgraph_core>=1.3.1->msgraph-sdk==1.23.0->prowler->-r requirements.txt (line 18))
+#20 82.36   Downloading microsoft_kiota_http-1.9.9-py3-none-any.whl.metadata (3.4 kB)
+#20 82.45   Downloading microsoft_kiota_http-1.9.8-py3-none-any.whl.metadata (3.4 kB)
+#20 82.54   Downloading microsoft_kiota_http-1.9.7-py3-none-any.whl.metadata (3.3 kB)
+#20 82.63   Downloading microsoft_kiota_http-1.9.6-py3-none-any.whl.metadata (3.3 kB)
+#20 82.73   Downloading microsoft_kiota_http-1.9.5-py3-none-any.whl.metadata (3.3 kB)
+#20 82.81   Downloading microsoft_kiota_http-1.9.4-py3-none-any.whl.metadata (3.3 kB)
+#20 82.90   Downloading microsoft_kiota_http-1.9.3-py3-none-any.whl.metadata (3.3 kB)
+#20 82.94 INFO: pip is still looking at multiple versions of microsoft-kiota-http to determine which version is compatible with other requirements. This could take a while.
+#20 83.02   Downloading microsoft_kiota_http-1.9.2-py3-none-any.whl.metadata (3.3 kB)
+#20 83.09 Collecting importlib-metadata (from dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 83.13   Downloading importlib_metadata-8.7.1-py3-none-any.whl.metadata (4.7 kB)
+#20 83.24 Collecting zipp>=3.20 (from importlib-metadata->dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 83.28   Downloading zipp-3.23.0-py3-none-any.whl.metadata (3.6 kB)
+#20 83.38 Collecting opentelemetry-semantic-conventions==0.61b0 (from opentelemetry-sdk>=1.27.0->microsoft-kiota-abstractions==1.9.2->prowler->-r requirements.txt (line 18))
+#20 83.43   Downloading opentelemetry_semantic_conventions-0.61b0-py3-none-any.whl.metadata (2.5 kB)
+#20 83.55 Collecting narwhals>=1.15.1 (from plotly>=5.0.0->dash==3.1.1->prowler->-r requirements.txt (line 18))
+#20 83.60   Downloading narwhals-2.18.1-py3-none-any.whl.metadata (14 kB)
+#20 83.78 Collecting wcwidth (from prompt-toolkit>=3.0.36->click-repl>=0.2.0->celery->-r requirements.txt (line 12))
+#20 83.82   Downloading wcwidth-0.6.0-py3-none-any.whl.metadata (30 kB)
+#20 84.14 Collecting requests-file>=1.4 (from tldextract->shodan==1.31.0->prowler->-r requirements.txt (line 18))
+#20 84.19   Downloading requests_file-3.0.1-py2.py3-none-any.whl.metadata (1.7 kB)
+#20 84.30 Collecting filelock>=3.0.8 (from tldextract->shodan==1.31.0->prowler->-r requirements.txt (line 18))
+#20 84.35   Downloading filelock-3.25.2-py3-none-any.whl.metadata (2.0 kB)
+#20 84.47 Downloading bcrypt-3.2.2-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl (54 kB)
+#20 84.71 Downloading pydantic-2.12.5-py3-none-any.whl (463 kB)
+#20 85.45 Downloading pydantic_core-2.41.5-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (1.9 MB)
+#20 86.92    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.9/1.9 MB 1.4 MB/s  0:00:01
+#20 86.97 Downloading langgraph-1.1.3-py3-none-any.whl (168 kB)
+#20 87.11 Downloading langgraph_checkpoint-4.0.1-py3-none-any.whl (50 kB)
+#20 87.20 Downloading langgraph_prebuilt-1.0.8-py3-none-any.whl (35 kB)
+#20 87.26 Downloading langgraph_sdk-0.3.12-py3-none-any.whl (95 kB)
+#20 87.36 Downloading pytest-9.0.2-py3-none-any.whl (374 kB)
+#20 87.60 Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+#20 87.66 Downloading pytest_asyncio-1.3.0-py3-none-any.whl (15 kB)
+#20 87.75 Downloading backports_asyncio_runner-1.2.0-py3-none-any.whl (12 kB)
+#20 87.84 Downloading pytest_cov-7.1.0-py3-none-any.whl (22 kB)
+#20 87.93 Downloading pytest_timeout-2.4.0-py3-none-any.whl (14 kB)
+#20 88.02 Downloading mypy-1.19.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (12.8 MB)
+#20 90.94    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 4.5 MB/s  0:00:02
+#20 91.00 Downloading python_owasp_zap_v2.4-0.1.0-py2.py3-none-any.whl (5.4 kB)
+#20 91.09 Downloading fastapi-0.135.2-py3-none-any.whl (117 kB)
+#20 91.17 Downloading uvicorn-0.42.0-py3-none-any.whl (68 kB)
+#20 91.27 Downloading celery-5.6.2-py3-none-any.whl (445 kB)
+#20 91.39 Downloading billiard-4.2.4-py3-none-any.whl (87 kB)
+#20 91.48 Downloading click-8.3.1-py3-none-any.whl (108 kB)
+#20 91.56 Downloading vine-5.1.0-py3-none-any.whl (9.6 kB)
+#20 91.65 Downloading redis-7.4.0-py3-none-any.whl (409 kB)
+#20 91.88 Downloading sqlalchemy-2.0.48-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (3.2 MB)
+#20 93.01    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.2/3.2 MB 3.0 MB/s  0:00:01
+#20 93.06 Downloading alembic-1.18.4-py3-none-any.whl (263 kB)
+#20 93.18 Downloading psycopg2_binary-2.9.11-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (4.4 MB)
+#20 94.04    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 5.2 MB/s  0:00:00
+#20 94.08 Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+#20 94.18 Downloading charset_normalizer-3.4.6-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (200 kB)
+#20 94.26 Downloading idna-3.11-py3-none-any.whl (71 kB)
+#20 94.35 Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+#20 94.44 Downloading prowler-5.22.0-py3-none-any.whl (9.1 MB)
+#20 95.59    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.1/9.1 MB 8.0 MB/s  0:00:01
+#20 95.64 Downloading alibabacloud_actiontrail20200706-2.4.1-py3-none-any.whl (28 kB)
+#20 95.90 Downloading alibabacloud_tea_openapi-0.4.1-py3-none-any.whl (25 kB)
+#20 95.99 Downloading alibabacloud_credentials-1.0.3-py3-none-any.whl (41 kB)
+#20 96.10 Downloading cryptography-44.0.3-cp39-abi3-manylinux_2_34_aarch64.whl (4.0 MB)
+#20 96.52    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.0/4.0 MB 9.5 MB/s  0:00:00
+#20 96.57 Downloading alibabacloud_cs20151215-6.1.0-py3-none-any.whl (189 kB)
+#20 96.66 Downloading alibabacloud_ecs20140526-7.2.5-py3-none-any.whl (659 kB)
+#20 96.72    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 659.5/659.5 kB 12.8 MB/s  0:00:00
+#20 96.77 Downloading alibabacloud_oss20190517-1.0.6-py3-none-any.whl (50 kB)
+#20 96.87 Downloading alibabacloud_ram20150501-1.2.0-py3-none-any.whl (43 kB)
+#20 96.95 Downloading alibabacloud_rds20140815-12.0.0-py3-none-any.whl (472 kB)
+#20 97.05 Downloading alibabacloud_sas20181203-6.1.0-py3-none-any.whl (848 kB)
+#20 97.13    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 848.0/848.0 kB 11.8 MB/s  0:00:00
+#20 97.18 Downloading alibabacloud_sls20201230-5.9.0-py3-none-any.whl (118 kB)
+#20 97.29 Downloading alibabacloud_sts20150401-1.1.6-py3-none-any.whl (11 kB)
+#20 97.38 Downloading alibabacloud_vpc20160428-6.13.0-py3-none-any.whl (472 kB)
+#20 97.49 Downloading alive_progress-3.3.0-py3-none-any.whl (78 kB)
+#20 97.55 Downloading about_time-4.2.1-py3-none-any.whl (13 kB)
+#20 97.64 Downloading awsipranges-0.3.3-py3-none-any.whl (18 kB)
+#20 97.74 Downloading azure_identity-1.21.0-py3-none-any.whl (189 kB)
+#20 97.82 Downloading azure_keyvault_keys-4.10.0-py3-none-any.whl (153 kB)
+#20 97.90 Downloading azure_mgmt_apimanagement-5.0.0-py3-none-any.whl (1.2 MB)
+#20 98.00    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 11.1 MB/s  0:00:00
+#20 98.05 Downloading azure_mgmt_applicationinsights-4.1.0-py3-none-any.whl (616 kB)
+#20 98.10    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 616.1/616.1 kB 17.3 MB/s  0:00:00
+#20 98.16 Downloading azure_mgmt_authorization-4.0.0-py3-none-any.whl (1.1 MB)
+#20 98.25    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 12.3 MB/s  0:00:00
+#20 98.30 Downloading azure_mgmt_compute-34.0.0-py3-none-any.whl (2.0 MB)
+#20 98.49    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 10.3 MB/s  0:00:00
+#20 98.55 Downloading azure_mgmt_containerregistry-12.0.0-py3-none-any.whl (1.1 MB)
+#20 98.64    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 11.8 MB/s  0:00:00
+#20 98.70 Downloading azure_mgmt_containerservice-34.1.0-py3-none-any.whl (415 kB)
+#20 98.78 Downloading azure_mgmt_cosmosdb-9.7.0-py3-none-any.whl (389 kB)
+#20 98.87 Downloading azure_mgmt_databricks-2.0.0-py3-none-any.whl (97 kB)
+#20 98.96 Downloading azure_mgmt_keyvault-10.3.1-py3-none-any.whl (901 kB)
+#20 99.04    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 901.4/901.4 kB 11.8 MB/s  0:00:00
+#20 99.10 Downloading azure_mgmt_loganalytics-12.0.0-py2.py3-none-any.whl (146 kB)
+#20 99.19 Downloading azure_mgmt_monitor-6.0.2-py3-none-any.whl (1.3 MB)
+#20 99.29    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 12.7 MB/s  0:00:00
+#20 99.34 Downloading azure_mgmt_network-28.1.0-py3-none-any.whl (575 kB)
+#20 99.39    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 575.3/575.3 kB 12.5 MB/s  0:00:00
+#20 99.44 Downloading azure_mgmt_postgresqlflexibleservers-1.1.0-py3-none-any.whl (220 kB)
+#20 99.50 Downloading azure_mgmt_rdbms-10.1.0-py3-none-any.whl (639 kB)
+#20 99.55    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 639.7/639.7 kB 13.4 MB/s  0:00:00
+#20 99.61 Downloading azure_mgmt_recoveryservices-3.1.0-py3-none-any.whl (109 kB)
+#20 99.70 Downloading azure_mgmt_recoveryservicesbackup-9.2.0-py3-none-any.whl (576 kB)
+#20 99.74    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 576.7/576.7 kB 13.8 MB/s  0:00:00
+#20 99.80 Downloading azure_mgmt_resource-23.3.0-py3-none-any.whl (2.9 MB)
+#20 100.0    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.9/2.9 MB 13.4 MB/s  0:00:00
+#20 100.1 Downloading azure_mgmt_search-9.1.0-py3-none-any.whl (110 kB)
+#20 100.2 Downloading azure_mgmt_security-7.0.0-py3-none-any.whl (1.4 MB)
+#20 100.2    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 17.0 MB/s  0:00:00
+#20 100.3 Downloading azure_mgmt_sql-3.0.1-py2.py3-none-any.whl (912 kB)
+#20 100.4    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 912.9/912.9 kB 17.0 MB/s  0:00:00
+#20 100.4 Downloading azure_mgmt_storage-22.1.1-py3-none-any.whl (569 kB)
+#20 100.4    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 569.5/569.5 kB 15.8 MB/s  0:00:00
+#20 100.5 Downloading azure_mgmt_subscription-3.1.1-py3-none-any.whl (79 kB)
+#20 100.6 Downloading azure_mgmt_web-8.0.0-py3-none-any.whl (2.5 MB)
+#20 100.7    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.5/2.5 MB 16.3 MB/s  0:00:00
+#20 100.8 Downloading azure_monitor_query-2.0.0-py3-none-any.whl (71 kB)
+#20 100.9 Downloading azure_storage_blob-12.24.1-py3-none-any.whl (408 kB)
+#20 101.0 Downloading boto3-1.40.61-py3-none-any.whl (139 kB)
+#20 101.1 Downloading botocore-1.40.61-py3-none-any.whl (14.1 MB)
+#20 101.9    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 14.1/14.1 MB 17.6 MB/s  0:00:00
+#20 101.9 Downloading cloudflare-4.3.1-py3-none-any.whl (4.4 MB)
+#20 102.5    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 7.0 MB/s  0:00:00
+#20 102.6 Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+#20 102.7 Downloading dash-3.1.1-py3-none-any.whl (7.9 MB)
+#20 103.8    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.9/7.9 MB 6.9 MB/s  0:00:01
+#20 103.9 Downloading dash_bootstrap_components-2.0.3-py3-none-any.whl (203 kB)
+#20 103.9 Downloading detect_secrets-1.5.0-py3-none-any.whl (120 kB)
+#20 104.1 Downloading dulwich-0.23.0-cp310-cp310-manylinux_2_28_aarch64.whl (1.1 MB)
+#20 104.3    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 7.1 MB/s  0:00:00
+#20 104.3 Downloading google_api_python_client-2.163.0-py2.py3-none-any.whl (13.1 MB)
+#20 105.8    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.1/13.1 MB 8.8 MB/s  0:00:01
+#20 105.9 Downloading graphemeu-0.7.2-py3-none-any.whl (22 kB)
+#20 105.9 Downloading h2-4.3.0-py3-none-any.whl (61 kB)
+#20 106.0 Downloading jsonschema-4.23.0-py3-none-any.whl (88 kB)
+#20 106.1 Downloading kubernetes-32.0.1-py2.py3-none-any.whl (2.0 MB)
+#20 106.2    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 12.7 MB/s  0:00:00
+#20 106.3 Downloading markdown-3.9-py3-none-any.whl (107 kB)
+#20 106.4 Downloading microsoft_kiota_abstractions-1.9.2-py3-none-any.whl (44 kB)
+#20 106.5 Downloading msgraph_sdk-1.23.0-py3-none-any.whl (25.1 MB)
+#20 109.7    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 25.1/25.1 MB 7.8 MB/s  0:00:03
+#20 109.7 Downloading numpy-2.0.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (13.9 MB)
+#20 111.2    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.9/13.9 MB 9.4 MB/s  0:00:01
+#20 111.3 Downloading oci-2.160.3-py3-none-any.whl (32.2 MB)
+#20 115.6    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 32.2/32.2 MB 7.4 MB/s  0:00:04
+#20 115.7 Downloading openstacksdk-4.2.0-py3-none-any.whl (1.7 MB)
+#20 115.9    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 7.1 MB/s  0:00:00
+#20 116.0 Downloading pandas-2.2.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (66.5 MB)
+#20 129.2    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.5/66.5 MB 5.0 MB/s  0:00:13
+#20 129.3 Downloading py_iam_expand-0.1.0-py3-none-any.whl (12 kB)
+#20 129.4 Downloading py_ocsf_models-0.8.1-py3-none-any.whl (64 kB)
+#20 129.5 Downloading email_validator-2.2.0-py3-none-any.whl (33 kB)
+#20 129.5 Downloading pygithub-2.8.0-py3-none-any.whl (432 kB)
+#20 129.7 Downloading pytz-2025.1-py2.py3-none-any.whl (507 kB)
+#20 130.0 Downloading schema-0.7.5-py2.py3-none-any.whl (17 kB)
+#20 130.1 Downloading slack_sdk-3.39.0-py2.py3-none-any.whl (309 kB)
+#20 130.3 Downloading tabulate-0.9.0-py3-none-any.whl (35 kB)
+#20 130.4 Downloading tzlocal-5.3.1-py3-none-any.whl (18 kB)
+#20 130.5 Downloading uuid6-2024.7.10-py3-none-any.whl (6.4 kB)
+#20 130.5 Downloading aiofiles-24.1.0-py3-none-any.whl (15 kB)
+#20 130.6 Downloading alibabacloud_gateway_sls-0.4.1-py3-none-any.whl (7.0 kB)
+#20 130.7 Downloading alibabacloud_gateway_sls_util-0.4.0-py3-none-any.whl (3.5 kB)
+#20 130.8 Downloading alibabacloud_openapi_util-0.2.4-py3-none-any.whl (7.7 kB)
+#20 130.8 Downloading alibabacloud_tea_util-0.3.14-py3-none-any.whl (6.7 kB)
+#20 130.9 Downloading anyio-4.13.0-py3-none-any.whl (114 kB)
+#20 130.9 Downloading apscheduler-3.11.2-py3-none-any.whl (64 kB)
+#20 131.0 Downloading azure_common-1.1.28-py2.py3-none-any.whl (14 kB)
+#20 131.1 Downloading azure_mgmt_core-1.6.0-py3-none-any.whl (29 kB)
+#20 131.3 Downloading circuitbreaker-2.1.3-py3-none-any.whl (7.7 kB)
+#20 131.4 Downloading darabonba_core-1.0.5-py3-none-any.whl (24 kB)
+#20 131.5 Downloading aiohttp-3.13.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (1.7 MB)
+#20 133.6    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 906.8 kB/s  0:00:02
+#20 133.7 Downloading async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
+#20 133.7 Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+#20 133.9 Downloading flask-3.1.3-py3-none-any.whl (103 kB)
+#20 134.0 Downloading google_api_core-2.30.0-py3-none-any.whl (173 kB)
+#20 134.2 Downloading google_auth-2.49.1-py3-none-any.whl (240 kB)
+#20 134.4 Downloading google_auth_httplib2-0.2.1-py3-none-any.whl (9.5 kB)
+#20 134.5 Downloading googleapis_common_protos-1.73.0-py3-none-any.whl (297 kB)
+#20 134.7 Downloading hpack-4.1.0-py3-none-any.whl (34 kB)
+#20 134.8 Downloading httplib2-0.31.2-py3-none-any.whl (91 kB)
+#20 134.9 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+#20 135.0 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+#20 135.1 Downloading hyperframe-6.1.0-py3-none-any.whl (13 kB)
+#20 135.1 Downloading isodate-0.7.2-py3-none-any.whl (22 kB)
+#20 135.2 Downloading jmespath-1.1.0-py3-none-any.whl (20 kB)
+#20 135.3 Downloading microsoft_kiota_serialization_form-1.9.2-py3-none-any.whl (10 kB)
+#20 135.3 Downloading microsoft_kiota_serialization_json-1.9.2-py3-none-any.whl (10 kB)
+#20 135.4 Downloading microsoft_kiota_serialization_multipart-1.9.2-py3-none-any.whl (6.6 kB)
+#20 135.4 Downloading microsoft_kiota_serialization_text-1.9.2-py3-none-any.whl (8.8 kB)
+#20 135.5 Downloading multidict-6.7.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (242 kB)
+#20 135.7 Downloading proto_plus-1.27.1-py3-none-any.whl (50 kB)
+#20 135.8 Downloading protobuf-6.33.6-cp39-abi3-manylinux2014_aarch64.whl (324 kB)
+#20 136.0 Downloading pyOpenSSL-24.3.0-py3-none-any.whl (56 kB)
+#20 136.1 Downloading pyparsing-3.3.2-py3-none-any.whl (122 kB)
+#20 136.3 Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+#20 136.4 Downloading s3transfer-0.14.0-py3-none-any.whl (85 kB)
+#20 136.6 Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+#20 136.6 Downloading uritemplate-4.2.0-py3-none-any.whl (11 kB)
+#20 136.7 Downloading werkzeug-3.1.7-py3-none-any.whl (226 kB)
+#20 136.9 Downloading yarl-1.23.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (99 kB)
+#20 137.0 Downloading fpdf2-2.8.7-py3-none-any.whl (327 kB)
+#20 137.2 Downloading python_jose-3.5.0-py2.py3-none-any.whl (34 kB)
+#20 137.3 Downloading rsa-4.9.1-py3-none-any.whl (34 kB)
+#20 137.3 Downloading passlib-1.7.4-py2.py3-none-any.whl (525 kB)
+#20 137.5    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 525.6/525.6 kB 2.7 MB/s  0:00:00
+#20 137.7 Downloading python_multipart-0.0.22-py3-none-any.whl (24 kB)
+#20 137.9 Downloading slowapi-0.1.9-py3-none-any.whl (14 kB)
+#20 138.1 Downloading aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+#20 138.1 Downloading aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+#20 138.2 Downloading aliyun_log_fastpb-0.2.0-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (208 kB)
+#20 138.3 Downloading annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+#20 138.4 Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+#20 138.5 Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+#20 138.5 Downloading azure_core-1.39.0-py3-none-any.whl (218 kB)
+#20 138.7 Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+#20 138.7 Downloading certifi-2026.2.25-py3-none-any.whl (153 kB)
+#20 138.8 Downloading cffi-2.0.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (216 kB)
+#20 139.0 Downloading click_didyoumean-0.3.1-py3-none-any.whl (3.6 kB)
+#20 139.0 Downloading click_plugins-1.1.1.2-py2.py3-none-any.whl (11 kB)
+#20 139.1 Downloading click_repl-0.3.0-py3-none-any.whl (10 kB)
+#20 139.1 Downloading contextlib2-21.6.0-py2.py3-none-any.whl (13 kB)
+#20 139.2 Downloading coverage-7.13.5-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (250 kB)
+#20 139.3 Downloading decorator-5.2.1-py3-none-any.whl (9.2 kB)
+#20 139.4 Downloading defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)
+#20 139.4 Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
+#20 139.6 Downloading dogpile_cache-1.5.0-py3-none-any.whl (64 kB)
+#20 139.7 Downloading durationpy-0.10-py3-none-any.whl (3.9 kB)
+#20 139.7 Downloading ecdsa-0.19.1-py2.py3-none-any.whl (150 kB)
+#20 139.8 Downloading exceptiongroup-1.3.1-py3-none-any.whl (16 kB)
+#20 139.9 Downloading fonttools-4.62.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (4.9 MB)
+#20 141.2    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.9/4.9 MB 3.9 MB/s  0:00:01
+#20 141.2 Downloading frozenlist-1.8.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (221 kB)
+#20 141.3 Downloading greenlet-3.3.2-cp310-cp310-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl (579 kB)
+#20 141.4    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 579.2/579.2 kB 5.9 MB/s  0:00:00
+#20 141.5 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#20 141.5 Downloading iamdata-0.1.202603241-py3-none-any.whl (1.2 MB)
+#20 141.8    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 5.5 MB/s  0:00:00
+#20 141.8 Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+#20 141.9 Downloading iso8601-2.1.0-py3-none-any.whl (7.5 kB)
+#20 142.0 Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+#20 142.1 Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+#20 142.2 Downloading jsonpatch-1.33-py2.py3-none-any.whl (12 kB)
+#20 142.3 Downloading jsonpointer-3.1.1-py3-none-any.whl (7.7 kB)
+#20 142.4 Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+#20 142.5 Downloading keystoneauth1-5.13.1-py3-none-any.whl (343 kB)
+#20 142.6 Downloading kombu-5.6.2-py3-none-any.whl (214 kB)
+#20 142.7 Downloading amqp-5.3.1-py3-none-any.whl (50 kB)
+#20 142.8 Downloading langchain_core-1.2.21-py3-none-any.whl (505 kB)
+#20 142.9 Downloading langsmith-0.7.22-py3-none-any.whl (359 kB)
+#20 143.0 Downloading pyyaml-6.0.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (740 kB)
+#20 143.1    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 740.6/740.6 kB 7.0 MB/s  0:00:00
+#20 143.2 Downloading tenacity-9.1.4-py3-none-any.whl (28 kB)
+#20 143.3 Downloading uuid_utils-0.14.1-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (344 kB)
+#20 143.4 Downloading librt-0.8.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (207 kB)
+#20 143.5 Downloading limits-5.8.0-py3-none-any.whl (60 kB)
+#20 143.6 Downloading deprecated-1.3.1-py2.py3-none-any.whl (11 kB)
+#20 143.7 Downloading wrapt-2.1.2-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (115 kB)
+#20 143.8 Downloading lz4-4.4.5-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (1.3 MB)
+#20 144.3    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 5.5 MB/s  0:00:00
+#20 144.4 Downloading markupsafe-3.0.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (22 kB)
+#20 144.4 Downloading msal-1.35.1-py3-none-any.whl (119 kB)
+#20 144.5 Downloading pyjwt-2.12.1-py3-none-any.whl (29 kB)
+#20 144.6 Downloading msal_extensions-1.3.1-py3-none-any.whl (20 kB)
+#20 144.7 Downloading msgraph_core-1.3.8-py3-none-any.whl (34 kB)
+#20 145.2 Downloading microsoft_kiota_authentication_azure-1.9.2-py3-none-any.whl (6.9 kB)
+#20 145.3 Downloading microsoft_kiota_http-1.9.2-py3-none-any.whl (31 kB)
+#20 145.4 Downloading msrest-0.7.1-py3-none-any.whl (85 kB)
+#20 145.7 Downloading mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+#20 145.8 Downloading oauthlib-3.3.1-py3-none-any.whl (160 kB)
+#20 146.1 Downloading opentelemetry_api-1.40.0-py3-none-any.whl (68 kB)
+#20 146.3 Downloading importlib_metadata-8.7.1-py3-none-any.whl (27 kB)
+#20 146.4 Downloading opentelemetry_sdk-1.40.0-py3-none-any.whl (141 kB)
+#20 146.7 Downloading opentelemetry_semantic_conventions-0.61b0-py3-none-any.whl (231 kB)
+#20 147.0 Downloading orjson-3.11.7-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (128 kB)
+#20 147.2 Downloading ormsgpack-1.12.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (203 kB)
+#20 147.4 Downloading os_service_types-1.8.2-py3-none-any.whl (24 kB)
+#20 147.5 Downloading packaging-26.0-py3-none-any.whl (74 kB)
+#20 147.6 Downloading pathspec-1.0.4-py3-none-any.whl (55 kB)
+#20 147.7 Downloading pbr-7.0.3-py2.py3-none-any.whl (131 kB)
+#20 147.9 Downloading pillow-12.1.1-cp310-cp310-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl (6.3 MB)
+#20 150.6    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 2.4 MB/s  0:00:02
+#20 150.7 Downloading platformdirs-4.9.4-py3-none-any.whl (21 kB)
+#20 150.8 Downloading plotly-6.6.0-py3-none-any.whl (9.9 MB)
+#20 152.9    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.9/9.9 MB 4.8 MB/s  0:00:02
+#20 152.9 Downloading narwhals-2.18.1-py3-none-any.whl (444 kB)
+#20 153.0 Downloading prompt_toolkit-3.0.52-py3-none-any.whl (391 kB)
+#20 153.2 Downloading propcache-0.4.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (201 kB)
+#20 153.2 Downloading psutil-7.2.2-cp36-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (156 kB)
+#20 153.3 Downloading pyasn1-0.6.3-py3-none-any.whl (83 kB)
+#20 153.4 Downloading pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+#20 153.5 Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+#20 153.8    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 3.5 MB/s  0:00:00
+#20 153.9 Downloading pynacl-1.6.2-cp38-abi3-manylinux_2_34_aarch64.whl (818 kB)
+#20 154.1    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 818.3/818.3 kB 3.0 MB/s  0:00:00
+#20 154.1 Downloading referencing-0.37.0-py3-none-any.whl (26 kB)
+#20 154.2 Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl (24 kB)
+#20 154.4 Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+#20 154.5 Downloading requestsexceptions-1.4.0-py2.py3-none-any.whl (3.8 kB)
+#20 154.6 Downloading rpds_py-0.30.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (389 kB)
+#20 154.7 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+#20 154.8 Downloading starlette-1.0.0-py3-none-any.whl (72 kB)
+#20 154.9 Downloading std_uritemplate-2.0.8-py3-none-any.whl (6.5 kB)
+#20 155.0 Downloading stevedore-5.7.0-py3-none-any.whl (54 kB)
+#20 155.1 Downloading tomli-2.4.0-py3-none-any.whl (14 kB)
+#20 155.2 Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+#20 155.3 Downloading tzdata-2025.3-py2.py3-none-any.whl (348 kB)
+#20 156.3 Downloading websocket_client-1.9.0-py3-none-any.whl (82 kB)
+#20 156.5 Downloading xxhash-3.6.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (212 kB)
+#20 156.9 Downloading zipp-3.23.0-py3-none-any.whl (10 kB)
+#20 156.9 Downloading zstandard-0.25.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (5.1 MB)
+#20 159.7    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.1/5.1 MB 2.0 MB/s  0:00:02
+#20 159.7 Downloading zstd-1.5.7.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl (1.5 MB)
+#20 160.2    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 3.5 MB/s  0:00:00
+#20 160.2 Downloading mako-1.3.10-py3-none-any.whl (78 kB)
+#20 160.3 Downloading nest_asyncio-1.6.0-py3-none-any.whl (5.2 kB)
+#20 160.4 Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+#20 160.4 Downloading retrying-1.4.2-py3-none-any.whl (10 kB)
+#20 160.5 Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+#20 160.6 Downloading tldextract-5.3.1-py3-none-any.whl (105 kB)
+#20 160.7 Downloading filelock-3.25.2-py3-none-any.whl (26 kB)
+#20 160.8 Downloading requests_file-3.0.1-py2.py3-none-any.whl (4.5 kB)
+#20 161.2 Downloading wcwidth-0.6.0-py3-none-any.whl (94 kB)
+#20 161.7 Downloading xlsxwriter-3.2.9-py3-none-any.whl (175 kB)
+#20 162.1 Downloading zaproxy-0.5.0-py3-none-any.whl (73 kB)
+#20 162.7 Building wheels for collected packages: python-nmap, alibabacloud-gateway-oss-util, shodan, alibabacloud-credentials-api, alibabacloud-endpoint-util, alibabacloud-gateway-oss, alibabacloud-darabonba-array, alibabacloud-darabonba-encode-util, alibabacloud-darabonba-map, alibabacloud-darabonba-signature-util, alibabacloud-darabonba-string, alibabacloud-darabonba-time, alibabacloud-gateway-spi, alibabacloud_oss_util, alibabacloud_tea_xml, alibabacloud-tea
+#20 162.7   Building wheel for python-nmap (pyproject.toml): started
+#20 162.8   Building wheel for python-nmap (pyproject.toml): finished with status 'done'
+#20 162.8   Created wheel for python-nmap: filename=python_nmap-0.7.1-py2.py3-none-any.whl size=20679 sha256=9f5e5c6e90b6bf68410d65c6fed4fafb1d075301e0fe1b83f3a38bb1ab7b1afc
+#20 162.8   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/da/bd/c6/0342ac886d4deb8d166a3191eb2566f738c5b1574cb0a8cd62
+#20 162.8   Building wheel for alibabacloud-gateway-oss-util (pyproject.toml): started
+#20 162.9   Building wheel for alibabacloud-gateway-oss-util (pyproject.toml): finished with status 'done'
+#20 162.9   Created wheel for alibabacloud-gateway-oss-util: filename=alibabacloud_gateway_oss_util-0.0.3-py3-none-any.whl size=106654 sha256=0f9d8f01fd4562875bd064c4cbb9d8e06a97720fc1352cffc6ae504d07cd443e
+#20 162.9   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/a8/81/94/eee90d3d37b710acdc5158e8392a6120d8261f5f90edc09c2d
+#20 162.9   Building wheel for shodan (pyproject.toml): started
+#20 163.0   Building wheel for shodan (pyproject.toml): finished with status 'done'
+#20 163.0   Created wheel for shodan: filename=shodan-1.31.0-py3-none-any.whl size=49365 sha256=5be3e17a71c4dbbd8a11dbf5a5af26da6d2b229d4ee5eb341afe9ea32e13169b
+#20 163.0   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/c7/1a/a0/4eacf882e3bab9443725d9ddc8b02ea9cc4d3516b1e6662ab8
+#20 163.0   Building wheel for alibabacloud-credentials-api (pyproject.toml): started
+#20 163.1   Building wheel for alibabacloud-credentials-api (pyproject.toml): finished with status 'done'
+#20 163.1   Created wheel for alibabacloud-credentials-api: filename=alibabacloud_credentials_api-1.0.0-py3-none-any.whl size=2298 sha256=9373ff64e8f0f37b335cf70479dde036ab4b996157e72427f79d06646c60adb8
+#20 163.1   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/d6/78/9b/e733a8128dff3c9613ca3736cc96fd079a66ca7699df90f94a
+#20 163.1   Building wheel for alibabacloud-endpoint-util (pyproject.toml): started
+#20 163.2   Building wheel for alibabacloud-endpoint-util (pyproject.toml): finished with status 'done'
+#20 163.2   Created wheel for alibabacloud-endpoint-util: filename=alibabacloud_endpoint_util-0.0.4-py3-none-any.whl size=2699 sha256=e607c4a026387ee411d284e2ec28ad7856f7a93c35c881ba9cd5282e179005c9
+#20 163.2   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/74/44/6c/69143f42ac4c28ff583167a70a3ffc042e49d5b31ccef07855
+#20 163.2   Building wheel for alibabacloud-gateway-oss (pyproject.toml): started
+#20 163.3   Building wheel for alibabacloud-gateway-oss (pyproject.toml): finished with status 'done'
+#20 163.3   Created wheel for alibabacloud-gateway-oss: filename=alibabacloud_gateway_oss-0.0.17-py3-none-any.whl size=7338 sha256=acdba9a15e5d8c0b08ced02e42cd50d575714f2bbbbb0f8a84b65e0246cbcd6b
+#20 163.3   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/61/25/e3/1efe743c08b1affd401fc9aa5a95b1e5fb31506f05a8585c89
+#20 163.3   Building wheel for alibabacloud-darabonba-array (pyproject.toml): started
+#20 163.4   Building wheel for alibabacloud-darabonba-array (pyproject.toml): finished with status 'done'
+#20 163.4   Created wheel for alibabacloud-darabonba-array: filename=alibabacloud_darabonba_array-0.1.0-py3-none-any.whl size=2451 sha256=d1916d472fad14484fcd4666d1aaf7cb644be360db60865e4e6daed6d8a2889e
+#20 163.4   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/49/49/70/e6d1925ad78ee9aac73f5971271035247ef936bda8548fda6f
+#20 163.4   Building wheel for alibabacloud-darabonba-encode-util (pyproject.toml): started
+#20 163.5   Building wheel for alibabacloud-darabonba-encode-util (pyproject.toml): finished with status 'done'
+#20 163.5   Created wheel for alibabacloud-darabonba-encode-util: filename=alibabacloud_darabonba_encode_util-0.0.2-py3-none-any.whl size=4357 sha256=617ca711de8e409cdfc77fc45a26ebed94ec5c90df45943b048cf0ac992d6974
+#20 163.5   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/71/ef/f7/b5617c25260f2f676f50b6a2439c31e1c51434c2d431a620cc
+#20 163.5   Building wheel for alibabacloud-darabonba-map (pyproject.toml): started
+#20 163.6   Building wheel for alibabacloud-darabonba-map (pyproject.toml): finished with status 'done'
+#20 163.6   Created wheel for alibabacloud-darabonba-map: filename=alibabacloud_darabonba_map-0.0.1-py3-none-any.whl size=2168 sha256=011c6d894192d9e469f7f20942168a3b8044c0f643c50dadeeb66b542f1e7e64
+#20 163.6   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/32/02/ba/3186c6d95eb6704f7d34da3edea56363e341111984c0c6f51d
+#20 163.6   Building wheel for alibabacloud-darabonba-signature-util (pyproject.toml): started
+#20 163.7   Building wheel for alibabacloud-darabonba-signature-util (pyproject.toml): finished with status 'done'
+#20 163.7   Created wheel for alibabacloud-darabonba-signature-util: filename=alibabacloud_darabonba_signature_util-0.0.4-py3-none-any.whl size=4528 sha256=495c083f7080f5cbc943ea793455e2490e69ae33e0cf37bf0fe96902ec4220c8
+#20 163.7   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/d8/17/77/29706e12e6221554a40db109f7b96a5448752c2bc8151e2b3e
+#20 163.7   Building wheel for alibabacloud-darabonba-string (pyproject.toml): started
+#20 163.8   Building wheel for alibabacloud-darabonba-string (pyproject.toml): finished with status 'done'
+#20 163.8   Created wheel for alibabacloud-darabonba-string: filename=alibabacloud_darabonba_string-0.0.4-py3-none-any.whl size=2839 sha256=88eccca669795af8f5bf509d64b29b8954ece0b0d03b10f6c787cff29c67978b
+#20 163.8   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/69/81/80/fa855fc9f2a10226fe4a8afe161f65a624e01f4e4892702448
+#20 163.8   Building wheel for alibabacloud-darabonba-time (pyproject.toml): started
+#20 163.9   Building wheel for alibabacloud-darabonba-time (pyproject.toml): finished with status 'done'
+#20 163.9   Created wheel for alibabacloud-darabonba-time: filename=alibabacloud_darabonba_time-0.0.1-py3-none-any.whl size=2949 sha256=1d6551cae30b8892a863c595137c5adc0388577715f5c7bf1e530211637ea316
+#20 163.9   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/38/ff/f8/dd332a9309652eb257927a027499c0f1b72c7e11c03bcb5962
+#20 164.0   Building wheel for alibabacloud-gateway-spi (pyproject.toml): started
+#20 164.1   Building wheel for alibabacloud-gateway-spi (pyproject.toml): finished with status 'done'
+#20 164.1   Created wheel for alibabacloud-gateway-spi: filename=alibabacloud_gateway_spi-0.0.3-py3-none-any.whl size=4353 sha256=c8fc0d813cfb6405079e31a415afd78a4583796737781f52e9d78b080eda1694
+#20 164.1   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/ae/49/c6/97e3c08498ac11fea4f39dec4151b10af3ed70b3627f9a0313
+#20 164.1   Building wheel for alibabacloud_oss_util (pyproject.toml): started
+#20 164.2   Building wheel for alibabacloud_oss_util (pyproject.toml): finished with status 'done'
+#20 164.2   Created wheel for alibabacloud_oss_util: filename=alibabacloud_oss_util-0.0.6-py3-none-any.whl size=9749 sha256=7e6fcb19bef8f2c542ee70c32c4d0f9d67c06ae7ec01c91a32aaa06f266059d5
+#20 164.2   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/04/3b/43/5cd16de012bb3ad85321d5eecf2e45ba4e54ea8958c93890c6
+#20 164.2   Building wheel for alibabacloud_tea_xml (pyproject.toml): started
+#20 164.3   Building wheel for alibabacloud_tea_xml (pyproject.toml): finished with status 'done'
+#20 164.3   Created wheel for alibabacloud_tea_xml: filename=alibabacloud_tea_xml-0.0.3-py3-none-any.whl size=3294 sha256=aca38b5daaa9df663565b88eaa16ad18806470dfe11b02cec6a83857c6553dba
+#20 164.3   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/cb/50/73/47db25c053077b56d67bbc3733892762e56338d415ca4552c8
+#20 164.3   Building wheel for alibabacloud-tea (pyproject.toml): started
+#20 164.4   Building wheel for alibabacloud-tea (pyproject.toml): finished with status 'done'
+#20 164.4   Created wheel for alibabacloud-tea: filename=alibabacloud_tea-0.4.3-py3-none-any.whl size=8445 sha256=4e61c22c28b0167d70a4a007f0a0debe78a6deb4beb17ed9081afe8542495c70
+#20 164.4   Stored in directory: /tmp/pip-ephem-wheel-cache-x8c6zkxy/wheels/ba/df/3a/7c4b79dc78e756be3da65cc23e50d75df1bb9e9e6753cef675
+#20 164.4 Successfully built python-nmap alibabacloud-gateway-oss-util shodan alibabacloud-credentials-api alibabacloud-endpoint-util alibabacloud-gateway-oss alibabacloud-darabonba-array alibabacloud-darabonba-encode-util alibabacloud-darabonba-map alibabacloud-darabonba-signature-util alibabacloud-darabonba-string alibabacloud-darabonba-time alibabacloud-gateway-spi alibabacloud_oss_util alibabacloud_tea_xml alibabacloud-tea
+#20 164.9 Installing collected packages: zstd, requestsexceptions, pytz, python-nmap, passlib, durationpy, circuitbreaker, azure-common, alibabacloud-endpoint-util, alibabacloud-darabonba-string, zstandard, zipp, xxhash, XlsxWriter, wrapt, websocket-client, wcwidth, vine, uuid6, uuid-utils, urllib3, uritemplate, tzlocal, tzdata, typing-extensions, tomli, tenacity, tabulate, stevedore, std-uritemplate, sniffio, slack-sdk, six, rpds-py, retrying, pyyaml, python-multipart, pyparsing, pygments, pycparser, pyasn1, psycopg2-binary, psutil, protobuf, propcache, pluggy, platformdirs, Pillow, pbr, pathspec, packaging, ormsgpack, orjson, oauthlib, numpy, nest-asyncio, narwhals, mypy_extensions, markupsafe, markdown, lz4, librt, jsonpointer, jmespath, itsdangerous, isodate, iso8601, iniconfig, idna, iamdata, hyperframe, hpack, h11, greenlet, graphemeu, frozenlist, fonttools, filelock, dnspython, distro, defusedxml, decorator, coverage, contextlib2, colorama, click, charset_normalizer, certifi, blinker, billiard, backports-asyncio-runner, awsipranges, attrs, async-timeout, annotated-types, annotated-doc, aliyun-log-fastpb, alibabacloud-gateway-oss-util, alibabacloud-darabonba-time, alibabacloud-darabonba-map, alibabacloud-darabonba-encode-util, alibabacloud-darabonba-array, alibabacloud-credentials-api, aiohappyeyeballs, aiofiles, about-time, Werkzeug, uvicorn, typing-inspection, sqlalchemy, schema, rsa, requests, referencing, redis, python-dateutil, pyjwt, pydantic-core, pyasn1-modules, py-iam-expand, proto-plus, prompt-toolkit, plotly, os-service-types, mypy, multidict, Mako, jsonpatch, jinja2, importlib-metadata, httplib2, httpcore, h2, googleapis-common-protos, fpdf2, exceptiongroup, email-validator, ecdsa, dulwich, dogpile.cache, deprecated, click-plugins, click-didyoumean, cffi, APScheduler, amqp, alive-progress, alibabacloud-gateway-sls-util, aiosignal, zaproxy, yarl, requests-toolbelt, requests-oauthlib, requests-file, python-jose, pytest, pynacl, pydantic, pandas, opentelemetry-api, limits, kombu, keystoneauth1, jsonschema-specifications, Flask, detect-secrets, cryptography, click-repl, botocore, bcrypt, azure-core, anyio, alembic, tldextract, starlette, slowapi, s3transfer, python-owasp-zap-v2.4, pytest-timeout, pytest-cov, pytest-asyncio, pyOpenSSL, py-ocsf-models, opentelemetry-semantic-conventions, openstacksdk, msrest, jsonschema, httpx, google-auth, dash, celery, azure-storage-blob, azure-monitor-query, azure-mgmt-core, azure-keyvault-keys, alibabacloud-darabonba-signature-util, aiohttp, shodan, pygithub, opentelemetry-sdk, oci, msal, langsmith, langgraph-sdk, kubernetes, google-auth-httplib2, google-api-core, fastapi, dash-bootstrap-components, cloudflare, boto3, azure-mgmt-web, azure-mgmt-subscription, azure-mgmt-storage, azure-mgmt-sql, azure-mgmt-security, azure-mgmt-search, azure-mgmt-resource, azure-mgmt-recoveryservicesbackup, azure-mgmt-recoveryservices, azure-mgmt-rdbms, azure-mgmt-postgresqlflexibleservers, azure-mgmt-network, azure-mgmt-monitor, azure-mgmt-loganalytics, azure-mgmt-keyvault, azure-mgmt-databricks, azure-mgmt-cosmosdb, azure-mgmt-containerservice, azure-mgmt-containerregistry, azure-mgmt-compute, azure-mgmt-authorization, azure-mgmt-applicationinsights, azure-mgmt-apimanagement, alibabacloud-tea, msal-extensions, microsoft-kiota-abstractions, langchain-core, google-api-python-client, darabonba-core, alibabacloud_tea_xml, alibabacloud-tea-util, alibabacloud_oss_util, alibabacloud_credentials, microsoft-kiota-serialization-text, microsoft-kiota-serialization-multipart, microsoft-kiota-serialization-json, microsoft-kiota-serialization-form, microsoft-kiota-http, microsoft-kiota-authentication-azure, langgraph-checkpoint, azure-identity, alibabacloud-openapi-util, alibabacloud-gateway-spi, msgraph_core, langgraph-prebuilt, alibabacloud_tea_openapi, alibabacloud-gateway-sls, alibabacloud-gateway-oss, msgraph-sdk, langgraph, alibabacloud_vpc20160428, alibabacloud_sts20150401, alibabacloud-sls20201230, alibabacloud_sas20181203, alibabacloud-rds20140815, alibabacloud_ram20150501, alibabacloud_oss20190517, alibabacloud_ecs20140526, alibabacloud_cs20151215, alibabacloud_actiontrail20200706, prowler
+#20 210.0 
+#20 210.0 Successfully installed APScheduler-3.11.2 Flask-3.1.3 Mako-1.3.10 Pillow-12.1.1 Werkzeug-3.1.7 XlsxWriter-3.2.9 about-time-4.2.1 aiofiles-24.1.0 aiohappyeyeballs-2.6.1 aiohttp-3.13.3 aiosignal-1.4.0 alembic-1.18.4 alibabacloud-credentials-api-1.0.0 alibabacloud-darabonba-array-0.1.0 alibabacloud-darabonba-encode-util-0.0.2 alibabacloud-darabonba-map-0.0.1 alibabacloud-darabonba-signature-util-0.0.4 alibabacloud-darabonba-string-0.0.4 alibabacloud-darabonba-time-0.0.1 alibabacloud-endpoint-util-0.0.4 alibabacloud-gateway-oss-0.0.17 alibabacloud-gateway-oss-util-0.0.3 alibabacloud-gateway-sls-0.4.1 alibabacloud-gateway-sls-util-0.4.0 alibabacloud-gateway-spi-0.0.3 alibabacloud-openapi-util-0.2.4 alibabacloud-rds20140815-12.0.0 alibabacloud-sls20201230-5.9.0 alibabacloud-tea-0.4.3 alibabacloud-tea-util-0.3.14 alibabacloud_actiontrail20200706-2.4.1 alibabacloud_credentials-1.0.3 alibabacloud_cs20151215-6.1.0 alibabacloud_ecs20140526-7.2.5 alibabacloud_oss20190517-1.0.6 alibabacloud_oss_util-0.0.6 alibabacloud_ram20150501-1.2.0 alibabacloud_sas20181203-6.1.0 alibabacloud_sts20150401-1.1.6 alibabacloud_tea_openapi-0.4.1 alibabacloud_tea_xml-0.0.3 alibabacloud_vpc20160428-6.13.0 alive-progress-3.3.0 aliyun-log-fastpb-0.2.0 amqp-5.3.1 annotated-doc-0.0.4 annotated-types-0.7.0 anyio-4.13.0 async-timeout-5.0.1 attrs-26.1.0 awsipranges-0.3.3 azure-common-1.1.28 azure-core-1.39.0 azure-identity-1.21.0 azure-keyvault-keys-4.10.0 azure-mgmt-apimanagement-5.0.0 azure-mgmt-applicationinsights-4.1.0 azure-mgmt-authorization-4.0.0 azure-mgmt-compute-34.0.0 azure-mgmt-containerregistry-12.0.0 azure-mgmt-containerservice-34.1.0 azure-mgmt-core-1.6.0 azure-mgmt-cosmosdb-9.7.0 azure-mgmt-databricks-2.0.0 azure-mgmt-keyvault-10.3.1 azure-mgmt-loganalytics-12.0.0 azure-mgmt-monitor-6.0.2 azure-mgmt-network-28.1.0 azure-mgmt-postgresqlflexibleservers-1.1.0 azure-mgmt-rdbms-10.1.0 azure-mgmt-recoveryservices-3.1.0 azure-mgmt-recoveryservicesbackup-9.2.0 azure-mgmt-resource-23.3.0 azure-mgmt-search-9.1.0 azure-mgmt-security-7.0.0 azure-mgmt-sql-3.0.1 azure-mgmt-storage-22.1.1 azure-mgmt-subscription-3.1.1 azure-mgmt-web-8.0.0 azure-monitor-query-2.0.0 azure-storage-blob-12.24.1 backports-asyncio-runner-1.2.0 bcrypt-3.2.2 billiard-4.2.4 blinker-1.9.0 boto3-1.40.61 botocore-1.40.61 celery-5.6.2 certifi-2026.2.25 cffi-2.0.0 charset_normalizer-3.4.6 circuitbreaker-2.1.3 click-8.3.1 click-didyoumean-0.3.1 click-plugins-1.1.1.2 click-repl-0.3.0 cloudflare-4.3.1 colorama-0.4.6 contextlib2-21.6.0 coverage-7.13.5 cryptography-44.0.3 darabonba-core-1.0.5 dash-3.1.1 dash-bootstrap-components-2.0.3 decorator-5.2.1 defusedxml-0.7.1 deprecated-1.3.1 detect-secrets-1.5.0 distro-1.9.0 dnspython-2.8.0 dogpile.cache-1.5.0 dulwich-0.23.0 durationpy-0.10 ecdsa-0.19.1 email-validator-2.2.0 exceptiongroup-1.3.1 fastapi-0.135.2 filelock-3.25.2 fonttools-4.62.1 fpdf2-2.8.7 frozenlist-1.8.0 google-api-core-2.30.0 google-api-python-client-2.163.0 google-auth-2.49.1 google-auth-httplib2-0.2.1 googleapis-common-protos-1.73.0 graphemeu-0.7.2 greenlet-3.3.2 h11-0.16.0 h2-4.3.0 hpack-4.1.0 httpcore-1.0.9 httplib2-0.31.2 httpx-0.28.1 hyperframe-6.1.0 iamdata-0.1.202603241 idna-3.11 importlib-metadata-8.7.1 iniconfig-2.3.0 iso8601-2.1.0 isodate-0.7.2 itsdangerous-2.2.0 jinja2-3.1.6 jmespath-1.1.0 jsonpatch-1.33 jsonpointer-3.1.1 jsonschema-4.23.0 jsonschema-specifications-2025.9.1 keystoneauth1-5.13.1 kombu-5.6.2 kubernetes-32.0.1 langchain-core-1.2.21 langgraph-1.1.3 langgraph-checkpoint-4.0.1 langgraph-prebuilt-1.0.8 langgraph-sdk-0.3.12 langsmith-0.7.22 librt-0.8.1 limits-5.8.0 lz4-4.4.5 markdown-3.9 markupsafe-3.0.3 microsoft-kiota-abstractions-1.9.2 microsoft-kiota-authentication-azure-1.9.2 microsoft-kiota-http-1.9.2 microsoft-kiota-serialization-form-1.9.2 microsoft-kiota-serialization-json-1.9.2 microsoft-kiota-serialization-multipart-1.9.2 microsoft-kiota-serialization-text-1.9.2 msal-1.35.1 msal-extensions-1.3.1 msgraph-sdk-1.23.0 msgraph_core-1.3.8 msrest-0.7.1 multidict-6.7.1 mypy-1.19.1 mypy_extensions-1.1.0 narwhals-2.18.1 nest-asyncio-1.6.0 numpy-2.0.2 oauthlib-3.3.1 oci-2.160.3 openstacksdk-4.2.0 opentelemetry-api-1.40.0 opentelemetry-sdk-1.40.0 opentelemetry-semantic-conventions-0.61b0 orjson-3.11.7 ormsgpack-1.12.2 os-service-types-1.8.2 packaging-26.0 pandas-2.2.3 passlib-1.7.4 pathspec-1.0.4 pbr-7.0.3 platformdirs-4.9.4 plotly-6.6.0 pluggy-1.6.0 prompt-toolkit-3.0.52 propcache-0.4.1 proto-plus-1.27.1 protobuf-6.33.6 prowler-5.22.0 psutil-7.2.2 psycopg2-binary-2.9.11 py-iam-expand-0.1.0 py-ocsf-models-0.8.1 pyOpenSSL-24.3.0 pyasn1-0.6.3 pyasn1-modules-0.4.2 pycparser-3.0 pydantic-2.12.5 pydantic-core-2.41.5 pygithub-2.8.0 pygments-2.19.2 pyjwt-2.12.1 pynacl-1.6.2 pyparsing-3.3.2 pytest-9.0.2 pytest-asyncio-1.3.0 pytest-cov-7.1.0 pytest-timeout-2.4.0 python-dateutil-2.9.0.post0 python-jose-3.5.0 python-multipart-0.0.22 python-nmap-0.7.1 python-owasp-zap-v2.4-0.1.0 pytz-2025.1 pyyaml-6.0.3 redis-7.4.0 referencing-0.37.0 requests-2.32.5 requests-file-3.0.1 requests-oauthlib-2.0.0 requests-toolbelt-1.0.0 requestsexceptions-1.4.0 retrying-1.4.2 rpds-py-0.30.0 rsa-4.9.1 s3transfer-0.14.0 schema-0.7.5 shodan-1.31.0 six-1.17.0 slack-sdk-3.39.0 slowapi-0.1.9 sniffio-1.3.1 sqlalchemy-2.0.48 starlette-1.0.0 std-uritemplate-2.0.8 stevedore-5.7.0 tabulate-0.9.0 tenacity-9.1.4 tldextract-5.3.1 tomli-2.4.0 typing-extensions-4.15.0 typing-inspection-0.4.2 tzdata-2025.3 tzlocal-5.3.1 uritemplate-4.2.0 urllib3-2.6.3 uuid-utils-0.14.1 uuid6-2024.7.10 uvicorn-0.42.0 vine-5.1.0 wcwidth-0.6.0 websocket-client-1.9.0 wrapt-2.1.2 xxhash-3.6.0 yarl-1.23.0 zaproxy-0.5.0 zipp-3.23.0 zstandard-0.25.0 zstd-1.5.7.3
+#20 210.0 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#20 DONE 211.9s
+
+#27 [api 6/6] COPY . .
+#27 DONE 0.7s
+
+#28 [api] exporting to image
+#28 exporting layers
+#28 ...
+
+#29 [worker] exporting to image
+#29 ...
+
+#28 [api] exporting to image
+#28 exporting layers 30.1s done
+#28 exporting manifest sha256:dc0776a1ab37695875dc2b15e702a13d567f550d406298e9140936f950b75e84 0.0s done
+#28 exporting config sha256:267f81163bab37ba1f7531729e78cb5acf66b095162dd84027cba329129ec680 0.0s done
+#28 exporting attestation manifest sha256:607e2cc5e9d62a6fef96e6aefaa808cd9ed23efdb43825c157b7a1c84fd532cb 0.0s done
+#28 exporting manifest list sha256:a3e8a9dcc1ba5993df5945dac1ed799f79d4ba65487fb63ecd1dd61dcb0dbc8d done
+#28 naming to docker.io/library/hipaasecsoc2-api:latest done
+#28 unpacking to docker.io/library/hipaasecsoc2-api:latest
+#28 ...
+
+#29 [worker] exporting to image
+#29 exporting layers 30.1s done
+#29 exporting manifest sha256:7a353e8ec53986591f656490d1992c19f3be9cead14424e72309ed1c9893f122 0.0s done
+#29 exporting config sha256:d13918ad66add0b1c57bbd7dc140c1df45c7d16098ab6c6769eb129a4552b80c 0.0s done
+#29 exporting attestation manifest sha256:6ad474c60149e7f9572829773382b59cdee40aa65722df640f38c9b19c509416 0.0s done
+#29 exporting manifest list sha256:b1aa966a3534309d002d22594956464bbb40b4e6742f5806f90e89ec899193ab done
+#29 naming to docker.io/library/hipaasecsoc2-worker:latest done
+#29 unpacking to docker.io/library/hipaasecsoc2-worker:latest
+#29 unpacking to docker.io/library/hipaasecsoc2-worker:latest 13.5s done
+#29 DONE 43.7s
+
+#28 [api] exporting to image
+#28 unpacking to docker.io/library/hipaasecsoc2-api:latest 13.5s done
+#28 DONE 43.7s
+
+#30 [api] resolving provenance for metadata file
+#30 DONE 0.0s
+
+#31 [worker] resolving provenance for metadata file
+#31 DONE 0.0s
+ Image hipaasecsoc2-worker Built 
+ Image hipaasecsoc2-api Built 
+ Image hipaasecsoc2-frontend Built 

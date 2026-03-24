@@ -1,0 +1,19 @@
+# PROPRIETARY SOFTWARE LICENSE AGREEMENT
+
+**Software:** Ralph Loop Enterprise v2.0
+**Owner:** [User Name / Organization]
+
+## 1. GRANT OF LICENSE
+This software is provided under a proprietary license. The owner grants you a non-exclusive, non-transferable right to use the software solely for internal security analysis and compliance purposes.
+
+## 2. RESTRICTIONS
+You may not:
+- Sublicense, sell, or distribute the source code.
+- Reverse engineer or attempt to derive the source code from the binary/container.
+- Use the software to provide "Compliance-as-a-Service" without explicit written consent from the owner.
+
+## 3. NO WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+## 4. LIMITATION OF LIABILITY
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

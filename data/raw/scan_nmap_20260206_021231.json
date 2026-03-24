@@ -1,0 +1,47 @@
+{
+    "127.0.0.1": {
+        "hostnames": [
+            {
+                "name": "localhost",
+                "type": "user"
+            },
+            {
+                "name": "localhost",
+                "type": "PTR"
+            }
+        ],
+        "addresses": {
+            "ipv4": "127.0.0.1"
+        },
+        "vendor": {},
+        "status": {
+            "state": "up",
+            "reason": "conn-refused"
+        },
+        "tcp": {
+            "5000": {
+                "state": "open",
+                "reason": "syn-ack",
+                "name": "rtsp",
+                "product": "",
+                "version": "",
+                "extrainfo": "",
+                "conf": "10",
+                "cpe": "",
+                "script": {
+                    "fingerprint-strings": "\n  FourOhFourRequest: \n    HTTP/1.1 403 Forbidden\n    Content-Length: 0\n    Server: AirTunes/925.5.1\n    X-Apple-ProcessingTime: 0\n    X-Apple-RequestReceivedTimestamp: 59378608\n  GetRequest: \n    HTTP/1.1 403 Forbidden\n    Content-Length: 0\n    Server: AirTunes/925.5.1\n    X-Apple-ProcessingTime: 0\n    X-Apple-RequestReceivedTimestamp: 59373571\n  HTTPOptions: \n    HTTP/1.1 403 Forbidden\n    Content-Length: 0\n    Server: AirTunes/925.5.1\n    X-Apple-ProcessingTime: 0\n    X-Apple-RequestReceivedTimestamp: 59378597\n  RTSPRequest: \n    RTSP/1.0 403 Forbidden\n    Content-Length: 0\n    Server: AirTunes/925.5.1\n    X-Apple-ProcessingTime: 0\n    X-Apple-RequestReceivedTimestamp: 59373595\n  SIPOptions: \n    RTSP/1.0 403 Forbidden\n    Content-Length: 0\n    Server: AirTunes/925.5.1\n    CSeq: 42 OPTIONS\n    X-Apple-ProcessingTime: 0\n    X-Apple-RequestReceivedTimestamp: 59378613"
+                }
+            },
+            "5432": {
+                "state": "open",
+                "reason": "syn-ack",
+                "name": "postgresql",
+                "product": "PostgreSQL DB",
+                "version": "9.6.0 or later",
+                "extrainfo": "",
+                "conf": "10",
+                "cpe": "cpe:/a:postgresql:postgresql"
+            }
+        }
+    }
+}

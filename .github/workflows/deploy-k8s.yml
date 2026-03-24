@@ -1,0 +1,136 @@
+name: CyberSurX GRC - Kubernetes Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      image_tag:
+        description: 'Image tag to deploy'
+        required: true
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  KUBECONFIG: ${{ runner.temp }}/kubeconfig
+
+jobs:
+  deploy-kubernetes:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment }}-k8s
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+    
+    - name: Configure kubectl
+      env:
+        K8S_CONFIG: ${{ secrets.K8S_KUBECONFIG }}
+      run: |
+        mkdir -p ${{ runner.temp }}
+        echo "$K8S_CONFIG" | base64 -d > $KUBECONFIG
+        chmod 600 $KUBECONFIG
+        kubectl cluster-info
+    
+    - name: Create namespace
+      run: |
+        kubectl create namespace cybersurx-${{ github.event.inputs.environment }} --dry-run=client -o yaml | kubectl apply -f -
+    
+    - name: Create image pull secret
+      env:
+        REGISTRY_USERNAME: ${{ github.actor }}
+        REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        kubectl create secret docker-registry ghcr-secret \
+          --docker-server=${{ env.REGISTRY }} \
+          --docker-username=$REGISTRY_USERNAME \
+          --docker-password=$REGISTRY_PASSWORD \
+          -n cybersurx-${{ github.event.inputs.environment }} \
+          --dry-run=client -o yaml | kubectl apply -f -
+    
+    - name: Create ConfigMap for environment
+      run: |
+        kubectl create configmap cybersurx-config \
+          --from-literal=ENVIRONMENT=${{ github.event.inputs.environment }} \
+          --from-literal=ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} \
+          -n cybersurx-${{ github.event.inputs.environment }} \
+          --dry-run=client -o yaml | kubectl apply -f -
+    
+    - name: Create Secret for sensitive data
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET_KEY }}
+        OLLAMA_KEY: ${{ secrets.OLLAMA_API_KEY }}
+        ZAP_KEY: ${{ secrets.ZAP_API_KEY }}
+      run: |
+        kubectl create secret generic cybersurx-secrets \
+          --from-literal=JWT_SECRET_KEY="$JWT_SECRET" \
+          --from-literal=OLLAMA_API_KEY="$OLLAMA_KEY" \
+          --from-literal=ZAP_API_KEY="$ZAP_KEY" \
+          -n cybersurx-${{ github.event.inputs.environment }} \
+          --dry-run=client -o yaml | kubectl apply -f -
+    
+    - name: Deploy Redis
+      run: |
+        kubectl apply -f k8s/redis-deployment.yaml \
+          -n cybersurx-${{ github.event.inputs.environment }}
+        kubectl rollout status deployment/redis \
+          -n cybersurx-${{ github.event.inputs.environment }}
+    
+    - name: Deploy Backend
+      run: |
+        BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.event.inputs.image_tag }}" \
+        envsubst < k8s/backend-deployment.yaml | \
+        kubectl apply -f - -n cybersurx-${{ github.event.inputs.environment }}
+        kubectl rollout status deployment/backend \
+          -n cybersurx-${{ github.event.inputs.environment }}
+    
+    - name: Deploy Frontend
+      run: |
+        FRONTEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.event.inputs.image_tag }}" \
+        envsubst < k8s/frontend-deployment.yaml | \
+        kubectl apply -f - -n cybersurx-${{ github.event.inputs.environment }}
+        kubectl rollout status deployment/frontend \
+          -n cybersurx-${{ github.event.inputs.environment }}
+    
+    - name: Verify Deployment
+      run: |
+        kubectl get deployments -n cybersurx-${{ github.event.inputs.environment }}
+        kubectl get pods -n cybersurx-${{ github.event.inputs.environment }}
+        kubectl get services -n cybersurx-${{ github.event.inputs.environment }}
+    
+    - name: Run Smoke Tests
+      run: |
+        # Wait for service to be ready
+        kubectl wait --for=condition=ready pod \
+          -l app=backend \
+          -n cybersurx-${{ github.event.inputs.environment }} \
+          --timeout=300s
+        
+        # Port forward and test
+        kubectl port-forward svc/backend 8000:8000 \
+          -n cybersurx-${{ github.event.inputs.environment }} &
+        sleep 5
+        
+        curl -f http://localhost:8000/health || exit 1
+        echo "✅ Backend health check passed"
+    
+    - name: Deployment Summary
+      run: |
+        echo "## Kubernetes Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Image Tag:** ${{ github.event.inputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY

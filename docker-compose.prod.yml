@@ -1,0 +1,137 @@
+version: '3.9'
+
+services:
+  api:
+    image: ${BACKEND_IMAGE:-ghcr.io/your-org/cybersurx/backend:latest}
+    container_name: aegis-api-prod
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - LLM_API_BASE=${LLM_API_BASE}
+      - LLM_MODEL=${LLM_MODEL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_EXPIRE_MINUTES=${JWT_EXPIRE_MINUTES:-480}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_DEFAULT_PASSWORD=${ADMIN_DEFAULT_PASSWORD}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - LOG_LEVEL=info
+      - SENTRY_DSN=${SENTRY_DSN_PRODUCTION}
+    expose:
+      - "8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      zap:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: always
+    labels:
+      environment: production
+      version: ${CI_COMMIT_SHA:-latest}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  worker:
+    image: ${BACKEND_IMAGE:-ghcr.io/your-org/cybersurx/backend:latest}
+    container_name: aegis-worker-prod
+    command: celery -A src.worker.tasks worker --loglevel=info --concurrency=4
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - LLM_API_BASE=${LLM_API_BASE}
+      - LLM_MODEL=${LLM_MODEL}
+      - ZAP_HOST=zap
+      - ZAP_API_KEY=${ZAP_API_KEY}
+      - SENTRY_DSN=${SENTRY_DSN_PRODUCTION}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+    labels:
+      environment: production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    container_name: aegis-redis-prod
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: aegis-zap-prod
+    command: >
+      zap.sh -daemon -host 0.0.0.0 -port 8080
+      -config api.key=${ZAP_API_KEY}
+      -config api.addrs.addr.name=.*
+      -config api.addrs.addr.regex=true
+    expose:
+      - "8080"
+    restart: always
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/your-org/cybersurx/frontend:latest}
+    container_name: aegis-frontend-prod
+    environment:
+      - API_URL=https://cybersurx.io/api
+      - ENVIRONMENT=production
+    expose:
+      - "80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: always
+    labels:
+      environment: production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Reverse proxy (Nginx)
+  nginx:
+    image: nginx:alpine
+    container_name: aegis-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+      - frontend
+    restart: always
+
+volumes:
+  redis_data:
+    driver: local

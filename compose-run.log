@@ -1,0 +1,20 @@
+ Network hipaasecsoc2_default Creating 
+ Network hipaasecsoc2_default Created 
+ Container aegis-redis Creating 
+ Container aegis-zap Creating 
+ Container aegis-zap Created 
+ Container aegis-redis Created 
+ Container aegis-worker Creating 
+ Container aegis-api Creating 
+ Container aegis-api Created 
+ Container aegis-frontend Creating 
+ Container aegis-worker Created 
+ Container aegis-frontend Created 
+Attaching to aegis-api, aegis-frontend, aegis-redis, aegis-worker, aegis-zap
+ Container aegis-zap Starting 
+ Container aegis-redis Starting 
+ Container aegis-zap Started 
+aegis-zap  | Found Java version 17.0.18
+aegis-zap  | Available memory: 7835 MB
+aegis-zap  | Using JVM args: -Xmx1958m
+Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint aegis-redis (cb019c68e754af6f0eeaf14b6be50a76c7a978a7c0484a649b44901fe4c62dc6): Bind for 0.0.0.0:6379 failed: port is already allocated
