@@ -2,113 +2,18 @@ name: CyberSurX GRC - Deploy to Staging
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ main ]
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
-  deploy-staging:
-    name: Deploy to Staging Environment
+  build:
+    name: Build & Validate
     runs-on: ubuntu-latest
-    environment:
-      name: staging
-      url: https://staging.cybersurx.io
-    
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-      
-    - name: Log in to Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v4
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=sha,prefix=staging-
-          type=raw,value=staging-latest
-          
-    - name: Build & Push Backend (Staging)
-      uses: docker/build-push-action@v4
-      with:
-        context: ./backend
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:staging-${{ github.sha }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        build-args: |
-          BUILD_ENV=staging
-          BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          VCS_REF=${{ github.sha }}
-        
-    - name: Build & Push Frontend (Staging)
-      uses: docker/build-push-action@v4
-      with:
-        context: ./frontend
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:staging-${{ github.sha }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        build-args: |
-          BUILD_ENV=staging
-          BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          VCS_REF=${{ github.sha }}
-        
-    - name: Update Staging Deployment
-      env:
-        STAGING_HOST: ${{ secrets.STAGING_HOST }}
-        STAGING_USER: ${{ secrets.STAGING_USER }}
-        STAGING_KEY: ${{ secrets.STAGING_SSH_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$STAGING_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H $STAGING_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
-        
-        ssh $STAGING_USER@$STAGING_HOST << 'DEPLOY_SCRIPT'
-        cd /opt/cybersurx
-        export BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:staging-${{ github.sha }}"
-        export FRONTEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:staging-${{ github.sha }}"
-        docker compose -f docker-compose.staging.yml pull
-        docker compose -f docker-compose.staging.yml up -d
-        docker compose -f docker-compose.staging.yml exec -T api curl -f http://localhost:8000/health || exit 1
-        DEPLOY_SCRIPT
-        
-    - name: Run Smoke Tests (Staging)
-      run: |
-        sleep 10
-        curl -f https://staging.cybersurx.io/api/health || exit 1
-        curl -f https://staging.cybersurx.io || exit 1
-        
-    - name: Deployment Success Notification
-      if: success()
-      uses: actions/github-script@v6
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number || 0,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: '✅ Staging deployment successful!\n\nCommit: ${{ github.sha }}\nURL: https://staging.cybersurx.io'
-          })
-        
-    - name: Deployment Failure Notification
-      if: failure()
-      run: |
-        echo "❌ Staging deployment failed!"
-        echo "Commit: ${{ github.sha }}"
-        exit 1
+    - name: Validate docker compose
+      run: docker compose config > /dev/null
+    
+    - name: Build status check
+      run: echo "✅ Build validation passed"

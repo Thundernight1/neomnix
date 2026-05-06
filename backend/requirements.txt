@@ -22,3 +22,6 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-multipart
 slowapi
+stripe>=9.0.0
+uvloop
+httptools

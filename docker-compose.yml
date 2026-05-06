@@ -19,8 +19,10 @@ services:
         condition: service_healthy
       zap:
         condition: service_started
+      postgres:
+        condition: service_healthy
     environment:
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///./cybersurx.db}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://compliance_admin:compliance_secure_pwd_2024@postgres:5432/neomnix_db}
       - REDIS_URL=redis://redis:6379/0
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - LLM_API_BASE=${LLM_API_BASE:-https://ollama.com/api}
@@ -56,7 +58,7 @@ services:
       zap:
         condition: service_started
     environment:
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///./cybersurx.db}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://compliance_admin:compliance_secure_pwd_2024@postgres:5432/neomnix_db}
       - REDIS_URL=redis://redis:6379/0
       - OLLAMA_API_KEY=${OLLAMA_API_KEY}
       - LLM_API_BASE=${LLM_API_BASE:-https://ollama.com/api}
@@ -89,12 +91,12 @@ services:
     container_name: aegis-zap
     image: ghcr.io/zaproxy/zaproxy:stable
     command: >
-      zap.sh -daemon -host 0.0.0.0 -port 8080
+      zap.sh -daemon -host 0.0.0.0 -port 9080
       -config api.key=${ZAP_API_KEY:-aegis-zap-secret}
       -config api.addrs.addr.name=.*
       -config api.addrs.addr.regex=true
     ports:
-      - "8080:8080"
+      - "9080:9080"
     restart: unless-stopped
 
   # ──────────────────────────────────────────────────────────────────────────
@@ -120,6 +122,30 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. PostgreSQL Database (Homebrew managed on host, but exposed for Docker)
+  # ──────────────────────────────────────────────────────────────────────────
+  postgres:
+    container_name: aegis-postgres
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-compliance_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-compliance_secure_pwd_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-neomnix_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/scripts/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-compliance_admin} -d ${POSTGRES_DB:-neomnix_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   reports_data:
+    driver: local
+  postgres_data:
     driver: local

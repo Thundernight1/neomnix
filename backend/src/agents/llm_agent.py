@@ -81,20 +81,24 @@ class LLMAgent:
 
     def _mock_response(self, query: str) -> Dict[str, Any]:
         """
-        Simple rule-based responses for testing.
+        Production fallback: Return meaningful responses when LLM is unavailable.
+        In production, always ensure OLLAMA_API_KEY is set.
         """
         query_lower = query.lower()
         
-        if "explain" in query_lower:
+        if "explain" in query_lower or "cve" in query_lower:
             return {
-                "response": "I can explain the compliance impact of specific vulnerabilities. Try asking 'explain CVE-202X-XXXX'."
+                "response": "Security Finding Analysis: LLM service unavailable. Please contact Neomnix support.",
+                "status": "service_unavailable"
             }
         
-        if "hello" in query_lower:
+        if "hello" in query_lower or "help" in query_lower:
             return {
-                "response": "Hello! I am the CyberSurX AI Assistant. I can help you run scans, analyze compliance, or explain findings."
+                "response": "Neomnix Compliance Assistant. LLM service unavailable. Please contact support.",
+                "status": "service_unavailable"
             }
 
         return {
-            "response": f"I understood your query '{query}', but I am running in Mock Mode. Set OLLAMA_API_KEY to enable real intelligence."
+            "response": "AI analysis unavailable. Contact your Neomnix administrator.",
+            "status": "service_unavailable"
         }

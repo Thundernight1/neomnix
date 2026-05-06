@@ -106,17 +106,33 @@ def on_startup():
     # --- Seed admin user if none exists ---
     db = SessionLocal()
     try:
+        from src.db.models import Tenant
+        
         admin = db.query(User).filter(User.role == "admin").first()
         if not admin:
+            # Create default tenant
+            default_tenant = Tenant(
+                id=str(uuid.uuid4()),
+                name="Default Organization",
+                slug="default-org",
+                billing_email=os.getenv("ADMIN_EMAIL", "admin@cybersurx.io"),
+                tier="enterprise",
+                is_active=True
+            )
+            db.add(default_tenant)
+            db.commit()
+            db.refresh(default_tenant)
+            
             default_password = os.getenv("ADMIN_DEFAULT_PASSWORD", "CyberSurX2026!")
             admin_email = os.getenv("ADMIN_EMAIL", "admin@cybersurx.io")
             admin_user = User(
+                tenant_id=default_tenant.id,
                 email=admin_email,
                 hashed_password=get_password_hash(default_password),
                 full_name="System Administrator",
                 role="admin",
                 is_active=True,
-                force_password_change=True  # Enforce password reset on first login
+                force_password_change=True
             )
             db.add(admin_user)
             db.commit()
@@ -125,11 +141,8 @@ def on_startup():
         db.close()
 
 
-# ╔══════════════════════════════════════════╗
-# ║         AUTH ENDPOINTS (PUBLIC)          ║
-# ╚══════════════════════════════════════════╝
 
-@app.post("/auth/login", response_model=TokenResponse)
+# @app.post("/auth/login", response_model=TokenResponse)
 @limiter.limit("10/minute")
 async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Authenticate user and return JWT token."""
