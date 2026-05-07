@@ -1,0 +1,339 @@
+{
+  "metadata": {
+    "version": "2.0.0",
+    "last_updated": "2026-03-10",
+    "frameworks": ["HIPAA-2026", "WA-MHMDA", "NIST-800-53", "SOC2", "CCM-4.0", "SEC-2023"],
+    "description": "Cross-framework compliance mapping rules for CyberSurX GRC. Maps technical findings from Nmap, OWASP ZAP, and SharkTap passive analysis to regulatory controls."
+  },
+
+  "mappings": [
+
+    {
+      "technical_trigger": "Unencrypted database connection detected",
+      "cwe_id": "CWE-319",
+      "source": ["nmap", "sharktap"],
+      "controls": [
+        "HIPAA-2026-164.312(a)(1)",
+        "HIPAA-2026-164.312(e)(1)",
+        "HIPAA-2026-164.312(e)(2)(ii)",
+        "WA-MHMDA-RCW-19.373.010",
+        "SOC2-CC6.1",
+        "SOC2-CC6.7",
+        "CCM-4.0-DSI-07",
+        "CCM-4.0-IVS-09"
+      ],
+      "description": "Cleartext database traffic detected. HIPAA mandates encryption of PHI in transit. SOC2 CC6.7 requires secure data transmission."
+    },
+
+    {
+      "technical_trigger": "Unencrypted Database Connection Traffic Detected",
+      "cwe_id": "CWE-319",
+      "source": ["sharktap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "HIPAA-2026-164.312(e)(2)(ii)",
+        "WA-MHMDA-RCW-19.373.010",
+        "SOC2-CC6.7",
+        "CCM-4.0-DSI-07",
+        "NIST-800-53-SC-8",
+        "NIST-800-53-SC-28"
+      ],
+      "description": "Unencrypted database traffic observed via passive network tap. Database connections must be encrypted to protect sensitive data in transit."
+    },
+
+    {
+      "technical_trigger": "Active Port Scan Detected from Internal Host",
+      "cwe_id": "CWE-200",
+      "source": ["sharktap"],
+      "controls": [
+        "HIPAA-2026-164.308(a)(1)(ii)(A)",
+        "HIPAA-2026-164.308(a)(6)(ii)",
+        "SOC2-CC7.2",
+        "SOC2-CC7.4",
+        "NIST-800-53-SI-4",
+        "NIST-800-53-IR-4",
+        "CCM-4.0-IVS-07",
+        "CCM-4.0-TVM-09",
+        "SEC-2023-Item1.05"
+      ],
+      "description": "An internal host is actively scanning ports — potential reconnaissance or compromised machine. HIPAA requires risk analysis and incident response. SEC rules may require disclosure of material cybersecurity events."
+    },
+
+    {
+      "technical_trigger": "DNS Tunneling Suspected — Potential Data Exfiltration",
+      "cwe_id": "CWE-284",
+      "source": ["sharktap"],
+      "controls": [
+        "HIPAA-2026-164.312(b)",
+        "HIPAA-2026-164.308(a)(1)(ii)(A)",
+        "HIPAA-2026-164.308(a)(5)(ii)(C)",
+        "WA-MHMDA-RCW-19.373.040",
+        "SOC2-CC7.3",
+        "SOC2-CC7.4",
+        "NIST-800-53-SI-4",
+        "NIST-800-53-AU-12",
+        "NIST-800-53-SC-7",
+        "CCM-4.0-DSI-02",
+        "CCM-4.0-SEF-06",
+        "SEC-2023-Item1.05"
+      ],
+      "description": "Suspiciously long DNS queries suggest DNS tunneling — a technique used to exfiltrate data by encoding it in DNS query names. This is a high-confidence indicator of a security incident requiring immediate investigation and potential SEC disclosure."
+    },
+
+    {
+      "technical_trigger": "Unencrypted Credential Transmission via HTTP POST",
+      "cwe_id": "CWE-523",
+      "source": ["sharktap", "zap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "HIPAA-2026-164.312(e)(2)(ii)",
+        "HIPAA-2026-164.308(a)(5)(ii)(D)",
+        "WA-MHMDA-RCW-19.373.030",
+        "SOC2-CC6.7",
+        "SOC2-CC6.1",
+        "NIST-800-53-SC-8",
+        "NIST-800-53-IA-5",
+        "CCM-4.0-IAM-07",
+        "CCM-4.0-DSI-07"
+      ],
+      "description": "HTTP POST requests captured in plaintext — credentials or sensitive data may be exposed. All authentication must occur over encrypted channels (HTTPS/TLS 1.2+)."
+    },
+
+    {
+      "technical_trigger": "Active Cleartext Remote Administration (Telnet)",
+      "cwe_id": "CWE-319",
+      "source": ["sharktap", "nmap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "HIPAA-2026-164.308(a)(1)(ii)(B)",
+        "HIPAA-2026-164.312(a)(2)(i)",
+        "WA-MHMDA-RCW-19.373.030",
+        "SOC2-CC6.1",
+        "SOC2-CC6.6",
+        "NIST-800-53-SC-8",
+        "NIST-800-53-CM-7",
+        "CCM-4.0-IVS-09",
+        "CCM-4.0-IAM-10"
+      ],
+      "description": "Active Telnet sessions observed. Telnet transmits all data including credentials in cleartext. Must be replaced with SSH. Critical HIPAA violation for any environment handling PHI."
+    },
+
+    {
+      "technical_trigger": "Cleartext File Transfer Protocol (FTP) Session Detected",
+      "cwe_id": "CWE-319",
+      "source": ["sharktap", "nmap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "HIPAA-2026-164.308(a)(1)(ii)(B)",
+        "WA-MHMDA-RCW-19.373.030",
+        "SOC2-CC6.1",
+        "SOC2-CC6.7",
+        "NIST-800-53-SC-8",
+        "CCM-4.0-DSI-07",
+        "CCM-4.0-IVS-09"
+      ],
+      "description": "FTP sessions transmit file contents and credentials in plaintext. Replace with SFTP (SSH File Transfer) or FTPS (FTP over TLS)."
+    },
+
+    {
+      "technical_trigger": "Large Outbound Data Transfer — Possible Exfiltration",
+      "cwe_id": "CWE-200",
+      "source": ["sharktap"],
+      "controls": [
+        "HIPAA-2026-164.312(b)",
+        "HIPAA-2026-164.308(a)(1)(ii)(A)",
+        "SOC2-CC7.3",
+        "NIST-800-53-SI-4",
+        "NIST-800-53-AU-6",
+        "CCM-4.0-DSI-02",
+        "CCM-4.0-SEF-06"
+      ],
+      "description": "Unusually large outbound data transfers detected. May indicate data exfiltration or unauthorized bulk data movement. Requires investigation."
+    },
+
+    {
+      "technical_trigger": "Open Port 8021/tcp (ftp-proxy)",
+      "cwe_id": "CWE-200",
+      "source": ["nmap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "WA-MHMDA-RCW-19.373.030",
+        "SOC2-CC6.6",
+        "CCM-4.0-IVS-07"
+      ],
+      "description": "Exposure of sensitive information via insecure FTP proxy."
+    },
+
+    {
+      "technical_trigger": "ZAP Alert: SQL Injection",
+      "cwe_id": "CWE-89",
+      "source": ["zap"],
+      "controls": [
+        "HIPAA-2026-164.306(a)(1)",
+        "WA-MHMDA-RCW-19.373.040",
+        "SOC2-CC7.1",
+        "SOC2-CC6.1",
+        "NIST-800-53-SI-10",
+        "NIST-800-53-SA-11",
+        "CCM-4.0-AIS-04",
+        "SEC-2023-S-K-Item106"
+      ],
+      "description": "SQL Injection vulnerability allows attacker to read, modify, or delete database contents including PHI. Critical HIPAA and SEC cybersecurity risk."
+    },
+
+    {
+      "technical_trigger": "ZAP Alert: Cross Site Scripting (Reflected)",
+      "cwe_id": "CWE-79",
+      "source": ["zap"],
+      "controls": [
+        "HIPAA-2026-164.308(a)(1)",
+        "WA-MHMDA-RCW-19.373.020",
+        "SOC2-CC7.1",
+        "NIST-800-53-SI-10",
+        "CCM-4.0-AIS-04",
+        "SEC-2023-S-K-Item106"
+      ],
+      "description": "Reflected XSS allows injection of malicious scripts into web pages. Can be used to steal session tokens or redirect users."
+    },
+
+    {
+      "technical_trigger": "Open Port 23/tcp (telnet)",
+      "cwe_id": "CWE-319",
+      "source": ["nmap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "HIPAA-2026-164.308(a)(1)(ii)(B)",
+        "WA-MHMDA-RCW-19.373.030",
+        "SOC2-CC6.1",
+        "SOC2-CC6.6",
+        "NIST-800-53-SC-8",
+        "NIST-800-53-CM-7",
+        "CCM-4.0-IVS-09",
+        "CCM-4.0-IAM-10"
+      ],
+      "description": "Telnet port open. Use of cleartext Telnet for remote administration. Must be replaced with SSH immediately."
+    },
+
+    {
+      "technical_trigger": "Open Port 21/tcp (ftp)",
+      "cwe_id": "CWE-319",
+      "source": ["nmap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "WA-MHMDA-RCW-19.373.030",
+        "SOC2-CC6.1",
+        "SOC2-CC6.7",
+        "NIST-800-53-SC-8",
+        "CCM-4.0-IVS-09",
+        "CCM-4.0-DSI-07"
+      ],
+      "description": "FTP port open. Cleartext file transfer protocol. Replace with SFTP or FTPS."
+    },
+
+    {
+      "technical_trigger": "tcpwrapped",
+      "cwe_id": "CWE-200",
+      "source": ["nmap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "SOC2-CC6.1",
+        "CCM-4.0-IVS-07"
+      ],
+      "description": "Service protected by TCP wrapper but still exposed externally. May permit unauthorized connection attempts."
+    },
+
+    {
+      "technical_trigger": "ZAP Alert: Directory Browsing",
+      "cwe_id": "CWE-548",
+      "source": ["zap"],
+      "controls": [
+        "HIPAA-2026-164.308(a)(1)",
+        "WA-MHMDA-RCW-19.373.030",
+        "SOC2-CC6.1",
+        "CCM-4.0-AIS-04"
+      ],
+      "description": "Server directory listing enabled. Exposes internal file structure."
+    },
+
+    {
+      "technical_trigger": "ZAP Alert: Path Traversal",
+      "cwe_id": "CWE-22",
+      "source": ["zap"],
+      "controls": [
+        "HIPAA-2026-164.306(a)(1)",
+        "WA-MHMDA-RCW-19.373.040",
+        "SOC2-CC6.1",
+        "NIST-800-53-SI-10",
+        "CCM-4.0-AIS-04"
+      ],
+      "description": "Path traversal allows access to files outside the web root. Can expose configuration files containing credentials."
+    },
+
+    {
+      "technical_trigger": "Open Port 80/tcp (http)",
+      "cwe_id": "CWE-319",
+      "source": ["nmap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "WA-MHMDA-RCW-19.373.030",
+        "SOC2-CC6.1",
+        "SOC2-CC6.7",
+        "NIST-800-53-SC-8",
+        "CCM-4.0-IVS-09",
+        "CCM-4.0-DSI-07"
+      ],
+      "description": "HTTP on port 80. Unencrypted web service. Must redirect to HTTPS. Any transmission of PHI over HTTP violates HIPAA."
+    },
+
+    {
+      "technical_trigger": "Weak SSL/TLS Protocol",
+      "cwe_id": "CWE-326",
+      "source": ["nmap"],
+      "controls": [
+        "HIPAA-2026-164.312(e)(1)",
+        "HIPAA-2026-164.312(e)(2)(ii)",
+        "WA-MHMDA-RCW-19.373.010",
+        "SOC2-CC6.7",
+        "NIST-800-53-SC-8",
+        "NIST-800-53-SC-17",
+        "CCM-4.0-IVS-09",
+        "CCM-4.0-DSI-07",
+        "SEC-2023-S-K-Item106"
+      ],
+      "description": "Weak TLS protocol (SSLv3, TLS 1.0, or TLS 1.1) detected. HIPAA requires current encryption standards. Upgrade to TLS 1.2+ minimum."
+    },
+
+    {
+      "technical_trigger": "ZAP Alert: Server Side Request Forgery",
+      "cwe_id": "CWE-918",
+      "source": ["zap"],
+      "controls": [
+        "HIPAA-2026-164.306(a)(1)",
+        "SOC2-CC6.1",
+        "SOC2-CC7.1",
+        "NIST-800-53-SC-7",
+        "CCM-4.0-AIS-04",
+        "SEC-2023-S-K-Item106"
+      ],
+      "description": "SSRF allows the server to make requests to internal resources. Can be used to probe internal services or access cloud metadata endpoints."
+    },
+
+    {
+      "technical_trigger": "ZAP Alert: Remote Code Execution",
+      "cwe_id": "CWE-94",
+      "source": ["zap"],
+      "controls": [
+        "HIPAA-2026-164.306(a)(1)",
+        "HIPAA-2026-164.308(a)(6)(ii)",
+        "SOC2-CC7.1",
+        "SOC2-CC7.4",
+        "NIST-800-53-SI-3",
+        "NIST-800-53-IR-4",
+        "CCM-4.0-AIS-04",
+        "CCM-4.0-SEF-05",
+        "SEC-2023-Item1.05"
+      ],
+      "description": "Remote code execution vulnerability. Complete system compromise possible. Immediate incident response required. Likely SEC material cybersecurity incident."
+    }
+  ]
+}
