@@ -2,6 +2,8 @@
 Neomnix Platform API — Production-Grade.
 Fixes: JWT auth, real compliance scoring, optimized stats, audit logging.
 """
+import os
+import re
 from fastapi import FastAPI, HTTPException, Depends, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
@@ -458,20 +460,31 @@ async def get_pdf_report(
     current_user: User = Depends(get_current_user)
 ):
     """Serves the generated PDF report for a specific job and framework."""
+    # Allow-list validation to prevent path traversal/control characters in route params.
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", job_id):
+        raise HTTPException(status_code=400, detail="Invalid job_id format.")
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", framework):
+        raise HTTPException(status_code=400, detail="Invalid framework format.")
+
     filename = f"{framework}_{job_id}.pdf"
-    file_path = os.path.join("reports", "pdf", filename)
+    pdf_dir = os.path.realpath(os.path.join("reports", "pdf"))
+    file_path = os.path.realpath(os.path.join(pdf_dir, filename))
+
+    # Enforce that the resolved path stays within the approved reports/pdf directory.
+    if os.path.commonpath([pdf_dir, file_path]) != pdf_dir:
+        raise HTTPException(status_code=400, detail="Invalid report path.")
 
     if not os.path.exists(file_path):
-        # Fallback: broader search if exact match fails
-        pdf_dir = os.path.join("reports", "pdf")
+        # Fallback: check exact filename in the reports directory if direct path misses.
         if os.path.isdir(pdf_dir):
             matched_file = next(
-                (f for f in os.listdir(pdf_dir) 
-                 if job_id in f and framework in f and f.endswith(".pdf")),
+                (f for f in os.listdir(pdf_dir) if f == filename),
                 None
             )
             if matched_file:
-                file_path = os.path.join(pdf_dir, matched_file)
+                file_path = os.path.realpath(os.path.join(pdf_dir, matched_file))
+                if os.path.commonpath([pdf_dir, file_path]) != pdf_dir:
+                    raise HTTPException(status_code=400, detail="Invalid report path.")
             else:
                 raise HTTPException(status_code=404, detail="Executive Report not found. Ensure the scan has completed.")
         else:
