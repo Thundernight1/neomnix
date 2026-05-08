@@ -94,7 +94,6 @@ FAILED=0
 echo "Container Status:"
 echo "-----------------"
 check_container "api" "Backend API" || FAILED=$((FAILED + 1))
-check_container "frontend" "Frontend" || FAILED=$((FAILED + 1))
 check_container "redis" "Redis Cache" || FAILED=$((FAILED + 1))
 check_container "worker" "Celery Worker" || FAILED=$((FAILED + 1))
 echo ""
@@ -103,7 +102,6 @@ echo ""
 echo "Service Health:"
 echo "---------------"
 check_endpoint "http://localhost:8000/health" "API Health" || FAILED=$((FAILED + 1))
-check_endpoint "http://localhost:3000" "Frontend" || FAILED=$((FAILED + 1))
 echo ""
 
 # Check Redis
@@ -129,7 +127,6 @@ if [ $FAILED -eq 0 ]; then
     echo "📍 Service URLs:"
     echo "   API: http://localhost:8000"
     echo "   API Docs: http://localhost:8000/docs"
-    echo "   Frontend: http://localhost:3000"
     exit 0
 else
     echo -e "${RED}❌ $FAILED checks failed${NC}"

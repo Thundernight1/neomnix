@@ -10,10 +10,9 @@ Neomnix (codename: CyberSurX GRC) is a multi-tenant compliance scanning and repo
 |-------|------------|
 | Backend | Python 3.10, FastAPI, SQLAlchemy, Alembic, Celery |
 | AI/Orchestration | LangGraph, custom agent framework |
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, shadcn/ui |
 | Data | PostgreSQL (production), SQLite (dev fallback), Redis (Celery broker) |
 | Security | OWASP ZAP, nmap, python-jose JWT, bcrypt |
-| Infrastructure | Docker Compose (6 services) |
+| Infrastructure | Docker Compose (5 services) |
 
 ---
 
@@ -56,35 +55,6 @@ mypy src/
 - `requires_zap` — needs OWASP ZAP running
 - `requires_llm` — needs LLM API access
 
-### Frontend (`/frontend`)
-
-```bash
-cd frontend
-
-# Dev server (proxies /api to localhost:8000)
-npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
-
-# Lint TypeScript/React
-npm run lint
-
-# Lint CSS
-npx stylelint "src/**/*.{css,scss}"
-```
-
-### End-to-End Tests (`/frontend/e2e`)
-
-```bash
-cd frontend/e2e
-npx cypress open    # interactive mode
-npx cypress run     # headless mode
-```
-
 ### Docker (Full Stack)
 
 ```bash
@@ -94,9 +64,6 @@ docker compose up -d
 # View logs
 docker logs -f aegis-api
 docker logs -f aegis-worker
-
-# Restart frontend after theme.json changes
-docker compose restart frontend
 
 # Tear down completely (including DB volumes)
 docker compose down -v
@@ -116,7 +83,6 @@ The application runs as 6 Docker Compose services:
 | Worker | `aegis-worker` | — | Celery worker (concurrency=2) running LangGraph scans |
 | Redis | `aegis-redis` | 6379 | Celery broker/backend |
 | ZAP | `aegis-zap` | 9080 | OWASP ZAP daemon for web app scanning |
-| Frontend | `aegis-frontend` | 3000 | Nginx serving React SPA |
 | PostgreSQL | `aegis-postgres` | 5432 | Primary database |
 
 ### Backend Architecture
@@ -162,29 +128,6 @@ src/
    - Low confidence triggers a recursive rescan with boosted intensity
 4. Results are serialized to the DB and compliance report generated
 
-### Frontend Architecture
-
-```
-src/
-├── components/
-│   ├── Dashboard.tsx
-│   ├── CommandCenter.tsx      # Main authenticated landing page
-│   ├── LoginScreen.tsx
-│   ├── ScanDetail.tsx
-│   ├── AuditLog.tsx
-│   ├── AICommandTerminal.tsx  # Natural-language command interface
-│   ├── ErrorBoundary.tsx
-│   └── ui/                    # shadcn/ui components (Button, Card, Input, etc.)
-│       ├── GlassCard.tsx      # Custom: glassmorphism card primitive
-│       └── NeonButton.tsx     # Custom: glowing button primitive
-├── lib/
-│   ├── api.ts                 # Fetch wrapper for backend API
-│   ├── useTheme.ts            # Runtime white-label theme loader
-│   └── utils.ts               # cn() helper for Tailwind class merging
-├── App.tsx                    # Router + auth guards + theme init
-└── main.tsx
-```
-
 ---
 
 ## Key Conventions
@@ -224,50 +167,12 @@ Critical vars for local dev (from `secrets.env.example` or `.env`):
 - `ZAP_API_KEY` — ZAP daemon auth
 - `STRIPE_API_KEY` — billing (required in production startup)
 
-### Frontend
-
-**shadcn/ui Setup**
-- Config in `components.json` (style: new-york, baseColor: slate)
-- Components live in `src/components/ui/`
-- Custom primitives (`GlassCard`, `NeonButton`) extend the design system
-
-**Tailwind & Styling**
-- Tailwind v4 with `tailwindcss-animate` plugin
-- Custom `cyber.*` colors in `tailwind.config.js` (navy, cyan, purple, blue, slate)
-- Glassmorphism effects via `bg-glass-gradient` and `backdrop-blur`
-- Global CSS variables are applied at runtime by `useTheme()`
-
-**White-Label Theming**
-- `theme.json` at repo root configures branding without code changes
-- Volume-mounted into the Nginx container at runtime
-- Edit `theme.json` → `docker compose restart frontend` to apply
-- `useTheme.ts` performs a deep merge of `theme.json` over `DEFAULT_THEME`
-- CSS custom properties (`--brand-*`) are injected into `:root`
-
-**Path Aliases**
-- `@/` maps to `src/` (configured in `vite.config.ts` and `tsconfig.json`)
-- Examples: `import { Button } from "@/components/ui/button"`
-
-**API Client**
-- `src/lib/api.ts` wraps `fetch`
-- Base URL from `VITE_API_URL` env var; defaults to `/api` (proxied to localhost:8000 in dev)
-- Auth token is NOT included in the api client — each component reads `localStorage.getItem('token')` and passes it in headers
-
-**Auth & Routing**
-- Auth state stored in `localStorage` (`token`, `force_password_change`)
-- Route guards check `isAuthenticated()` inline in `<Route>` elements
-- `/` redirects authenticated users to `CommandCenter`, unauthenticated to `/login`
-
 ### Testing
 
 **Backend Test Patterns**
 - Use in-memory SQLite for test DB fixtures
 - Override `get_db` dependency to inject test sessions
 - Group related tests in classes (e.g., `TestLogin`, `TestGetMe`)
-
-**Frontend**
-- E2E tests in `frontend/e2e/` using Cypress
-- No unit test runner configured (no Jest/Vitest in devDependencies)
 
 ### Docker & Deployment
 
@@ -282,7 +187,3 @@ Critical vars for local dev (from `secrets.env.example` or `.env`):
 **Backend Dockerfile**
 Based on `python:3.10` (full, not slim) to include GCC/headers for native builds.
 System dependencies: `nmap`, `libpq-dev`.
-
-**Frontend Dockerfile**
-Builds with Vite, then serves via Nginx.
-`theme.json` is volume-mounted so branding changes don't require rebuild.
