@@ -67,6 +67,12 @@ else
     echo "⚠️  API health check failed, but container is running"
 fi
 
+if curl -f http://localhost:3000 2>/dev/null; then
+    echo "✅ Frontend is healthy"
+else
+    echo "⚠️  Frontend health check failed, but container is running"
+fi
+
 echo ""
 echo "📊 Current status:"
 docker compose ps

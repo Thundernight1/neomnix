@@ -21,6 +21,7 @@ docker compose down
 | Service | Port | Purpose |
 |---------|------|---------|
 | API | 8000 | FastAPI backend |
+| Frontend | 3000 | React web UI |
 | Redis | 6379 | Message broker |
 | ZAP | 8080 | Security scanner |
 
@@ -43,6 +44,12 @@ Key variables:
 ```bash
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 uvicorn src.api.main:app --reload --port 8000
+```
+
+**Frontend (React)**
+```bash
+cd frontend
+npm run dev
 ```
 
 **Worker (Celery)**

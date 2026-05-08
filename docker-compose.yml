@@ -31,7 +31,7 @@ services:
       - JWT_EXPIRE_MINUTES=${JWT_EXPIRE_MINUTES:-480}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@neomnix.io}
       - ADMIN_DEFAULT_PASSWORD=${ADMIN_DEFAULT_PASSWORD:-Neomnix2026!}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 15s
@@ -100,7 +100,30 @@ services:
     restart: unless-stopped
 
   # ──────────────────────────────────────────────────────────────────────────
-  # 5. PostgreSQL Database (Homebrew managed on host, but exposed for Docker)
+  # 5. Frontend Service (React + Nginx)
+  #
+  # White-label branding: theme.json is volume-mounted from the project root
+  # into the Nginx HTML directory. Edit theme.json and run:
+  #   docker compose restart frontend
+  # to apply changes without rebuilding the image.
+  # ──────────────────────────────────────────────────────────────────────────
+  frontend:
+    container_name: aegis-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    volumes:
+      # Mount theme.json as a runtime-configurable static file
+      - ./theme.json:/usr/share/nginx/html/theme.json:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. PostgreSQL Database (Homebrew managed on host, but exposed for Docker)
   # ──────────────────────────────────────────────────────────────────────────
   postgres:
     container_name: aegis-postgres

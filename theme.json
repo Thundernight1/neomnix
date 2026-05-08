@@ -1,0 +1,62 @@
+{
+  "_comment": "Neomnix GRC — White-Label Configuration. Edit this file to rebrand the platform. No code changes or rebuilds required. Restart the frontend container after saving: docker compose restart frontend",
+
+  "platform": {
+    "name": "Neomnix GRC",
+    "shortName": "Neomnix",
+    "tagline": "Enterprise Compliance & Risk Management Platform",
+    "logoPath": "/logo.svg",
+    "faviconPath": "/favicon.ico",
+    "supportEmail": "support@neomnix.io",
+    "privacyPolicyUrl": "https://neomnix.io/privacy",
+    "termsUrl": "https://neomnix.io/terms",
+    "version": "2.0.0",
+    "copyrightHolder": "Neomnix, Inc."
+  },
+
+  "branding": {
+    "primaryColor": "#3b82f6",
+    "primaryColorHover": "#2563eb",
+    "primaryColorDark": "#1d4ed8",
+    "accentColor": "#8b5cf6",
+    "accentColorHover": "#7c3aed",
+    "dangerColor": "#ef4444",
+    "successColor": "#22c55e",
+    "warningColor": "#f59e0b",
+
+    "backgroundPage": "#020817",
+    "backgroundSurface": "#0f172a",
+    "backgroundCard": "#1e293b",
+    "borderColor": "#334155",
+
+    "textPrimary": "#f1f5f9",
+    "textSecondary": "#94a3b8",
+    "textMuted": "#64748b",
+
+    "fontFamily": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+    "borderRadius": "8px"
+  },
+
+  "loginPage": {
+    "headline": "Secure Compliance & Risk Management",
+    "subheadline": "Sign in to access your GRC dashboard",
+    "showSecurityBadge": true,
+    "securityBadgeText": "Protected by Neomnix Security Architecture"
+  },
+
+  "dashboard": {
+    "defaultTarget": "scanme.nmap.org",
+    "welcomeMessage": "Welcome to Neomnix GRC",
+    "showAITerminal": true,
+    "showRadarChart": true,
+    "showTrendChart": true
+  },
+
+  "features": {
+    "enableAITerminal": true,
+    "enableCloudScan": true,
+    "enableAuditLog": true,
+    "enablePDFReports": true,
+    "enableUserManagement": true
+  }
+}
