@@ -1,4 +1,4 @@
-# CyberSurX - HIPAA SEC SOC2 Compliance Platform
+# Neomnix - HIPAA SEC SOC2 Compliance Platform
 
 A Docker-based security scanning and compliance reporting system.
 
@@ -69,14 +69,14 @@ View status: https://github.com/Thundernight1/HIPAA-SEC-SOC2/actions
 ## Admin Access
 
 Default admin account:
-- Email: `admin@cybersurx.io`
+- Email: `admin@neomnix.io`
 - Password: Set in `.env` as `ADMIN_DEFAULT_PASSWORD`
 
 Change on first login.
 
 ## Database
 
-SQLite by default at `./cybersurx.db`
+SQLite by default at `./neomnix.db`
 
 Reset:
 ```bash

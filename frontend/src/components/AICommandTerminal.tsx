@@ -16,7 +16,7 @@ export default function AICommandTerminal() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: "I am CyberSurX AI. How can I assist with your compliance today?", timestamp: new Date() }
+    { role: 'bot', content: "I am Neomnix AI. How can I assist with your compliance today?", timestamp: new Date() }
   ]);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);

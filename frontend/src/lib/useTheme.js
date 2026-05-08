@@ -1,5 +1,5 @@
 /**
- * useTheme — Runtime white-label theme loader for CyberSurX GRC.
+ * useTheme — Runtime white-label theme loader for Neomnix GRC.
  *
  * Fetches /theme.json (volume-mounted into Nginx, editable without rebuild).
  * Performs a DEEP merge against DEFAULT_THEME so partial theme.json files
@@ -9,15 +9,15 @@
 import { useState, useEffect, useContext, createContext } from 'react';
 export const DEFAULT_THEME = {
     platform: {
-        name: 'CyberSurX GRC',
-        shortName: 'CyberSurX',
+        name: 'Neomnix GRC',
+        shortName: 'Neomnix',
         tagline: 'Enterprise Compliance & Risk Management Platform',
         logoPath: '/logo.svg',
         faviconPath: '/favicon.ico',
-        supportEmail: 'support@cybersurx.io',
+        supportEmail: 'support@neomnix.io',
         privacyPolicyUrl: '',
         termsUrl: '',
-        copyrightHolder: 'CyberSurX, Inc.',
+        copyrightHolder: 'Neomnix, Inc.',
         version: '2.0.0',
     },
     branding: {
@@ -43,11 +43,11 @@ export const DEFAULT_THEME = {
         headline: 'Secure Compliance & Risk Management',
         subheadline: 'Sign in to access your GRC dashboard',
         showSecurityBadge: true,
-        securityBadgeText: 'Protected by CyberSurX Security Architecture',
+        securityBadgeText: 'Protected by Neomnix Security Architecture',
     },
     dashboard: {
         defaultTarget: '',
-        welcomeMessage: 'Welcome to CyberSurX GRC',
+        welcomeMessage: 'Welcome to Neomnix GRC',
         showAITerminal: true,
         showRadarChart: true,
         showTrendChart: true,

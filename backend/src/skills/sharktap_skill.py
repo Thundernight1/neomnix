@@ -3,7 +3,7 @@ SharkTap Passive Network Analysis Skill
 ========================================
 Processes PCAP files captured by a SharkTap inline network tap and converts
 detected network threats into VulnerabilityArtifacts that flow through the
-standard CyberSurX compliance pipeline.
+standard Neomnix compliance pipeline.
 
 Workflow:
   Analyst (on-site) → SharkTap → capture.pcap → Upload to API →

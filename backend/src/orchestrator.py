@@ -1,7 +1,7 @@
 import asyncio
 from typing import TypedDict, Union, List, Literal
 from langgraph.graph import StateGraph, END # type: ignore
-from src.models.contracts import VulnerabilityArtifact, ScanContext, ComplianceVerdict, RalphState
+from src.models.contracts import VulnerabilityArtifact, ScanContext, ComplianceVerdict, NeomnixState
 from src.agents.scanner import ScannerAgent
 from src.agents.compliance import ComplianceAgent, ComplianceGapError
 
@@ -12,7 +12,7 @@ class NeomnixOrchestrator:
     """
     
     def __init__(self):
-        self.workflow = StateGraph(RalphState)
+        self.workflow = StateGraph(NeomnixState)
         self._build_graph()
         self.compliance_agent = ComplianceAgent()
 
@@ -37,7 +37,7 @@ class NeomnixOrchestrator:
         self.workflow.add_edge("regulatory_mapper", END)
         self.app = self.workflow.compile()
 
-    async def scanner_node(self, state: RalphState) -> RalphState:
+    async def scanner_node(self, state: NeomnixState) -> NeomnixState:
         print(f"--- [Orchestrator] Dispatching ScannerAgent (Intensity: {state['context'].intensity}) ---")
         agent = ScannerAgent(
             target=state['context'].target,
@@ -48,7 +48,7 @@ class NeomnixOrchestrator:
         state['context'].attempt_count += 1
         return state
 
-    async def quality_check_node(self, state: RalphState) -> RalphState:
+    async def quality_check_node(self, state: NeomnixState) -> NeomnixState:
         print("--- [Orchestrator] Performing Quality Check ---")
         artifacts = state['artifacts']
         if not artifacts:
@@ -69,7 +69,7 @@ class NeomnixOrchestrator:
         print(f"--- [Orchestrator] Confidence Score: {confidence} ---")
         return state
 
-    async def regulatory_mapper_node(self, state: RalphState) -> RalphState:
+    async def regulatory_mapper_node(self, state: NeomnixState) -> NeomnixState:
         print("--- [Orchestrator] Dispatching ComplianceAgent ---")
         try:
             job_id = state['context'].job_id or self.compliance_agent.run_id
@@ -85,7 +85,7 @@ class NeomnixOrchestrator:
             print(f"!!! [Orchestrator] ComplianceAgent error: {e} !!!")
             raise e
 
-    def routing_logic(self, state: RalphState) -> Literal['rescan', 'finalize']:
+    def routing_logic(self, state: NeomnixState) -> Literal['rescan', 'finalize']:
         confidence = state['confidence']
         ctx = state['context']
         
@@ -100,7 +100,7 @@ class NeomnixOrchestrator:
 
     async def run(self, target: str):
         print("\n=== Initializing Neomnix (Zero-Trust Compliance System) ===\n")
-        initial_state = RalphState(
+        initial_state = NeomnixState(
             artifacts=[],
             context=ScanContext(intensity=1, target=target),
             verdict=None,

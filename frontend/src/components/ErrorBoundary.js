@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component {
     componentDidCatch(error, errorInfo) {
         this.setState({ errorInfo });
         // In production, send to your error monitoring service here
-        console.error('[CyberSurX GRC] Unhandled error:', error, errorInfo);
+        console.error('[Neomnix GRC] Unhandled error:', error, errorInfo);
     }
     handleReset = () => {
         this.setState({ hasError: false, error: null, errorInfo: null });

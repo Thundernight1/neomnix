@@ -7,7 +7,7 @@ set -e
 BACKUP_DIR="${BACKUP_DIR:-.}"
 ENVIRONMENT="${ENVIRONMENT:-production}"
 
-echo "🔙 CyberSurX Rollback Tool"
+echo "🔙 Neomnix Rollback Tool"
 echo "==========================="
 echo "Environment: $ENVIRONMENT"
 echo ""

@@ -33,7 +33,7 @@ class ScanContext(BaseModel):
     target: str
     job_id: str = Field(default="")
 
-class RalphState(TypedDict):
+class NeomnixState(TypedDict):
     """State definition for the LangGraph workflow."""
     artifacts: List[VulnerabilityArtifact]
     context: ScanContext

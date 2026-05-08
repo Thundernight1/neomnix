@@ -546,7 +546,7 @@ async def analyze_pcap_upload(
 
         # Feed artifacts through ComplianceAgent for cross-mapping + PDF
         from src.agents.compliance import ComplianceAgent
-        from src.models.contracts import ScanContext, RalphState
+        from src.models.contracts import ScanContext, NeomnixState
 
         compliance_agent = ComplianceAgent()
         confidence = 0.95 if any(t.get("severity") == "HIGH" for t in threats) else 0.7

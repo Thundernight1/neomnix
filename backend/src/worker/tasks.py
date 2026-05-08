@@ -1,7 +1,7 @@
 import os
 from celery import Celery
 import asyncio
-from src.orchestrator import CyberSurXOrchestrator
+from src.orchestrator import NeomnixOrchestrator
 from src.db.models import SessionLocal, ScanJob, init_db
 from datetime import datetime
 import json
@@ -13,19 +13,19 @@ init_db()
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 celery_app = Celery(
-    "cybersurx_worker",
+    "neomnix_worker",
     broker=REDIS_URL,
     backend=REDIS_URL
 )
 
 
 # Initialize Orchestrator Singleton
-orchestrator = CyberSurXOrchestrator()
+orchestrator = NeomnixOrchestrator()
 
 @celery_app.task(bind=True)
-def run_cybersurx_scan(self, job_id: str, target: str, intensity: int = 1):
+def run_neomnix_scan(self, job_id: str, target: str, intensity: int = 1):
     """
-    Celery Task to run the CyberSurX Orchestrator asynchronously.
+    Celery Task to run the Neomnix Orchestrator asynchronously.
     Updates the database with progress and results.
     """
     print(f"--- [Worker] Starting Scan Job {job_id} for target {target} ---")
@@ -53,9 +53,9 @@ def run_cybersurx_scan(self, job_id: str, target: str, intensity: int = 1):
         # To avoid massive refactor right now, let's import the graph and run it directly here
         # similar to how orchestrator.run() does it.
         
-        from src.models.contracts import ScanContext, RalphState
+        from src.models.contracts import ScanContext, NeomnixState
         
-        initial_state = RalphState(
+        initial_state = NeomnixState(
             artifacts=[],
             context=ScanContext(intensity=intensity, target=target, job_id=job_id),
             verdict=None,
