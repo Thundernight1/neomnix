@@ -1,4 +1,4 @@
-name: CyberSurX GRC - Deploy to Production
+name: Neomnix Deploy to Production
 
 on:
   push:
@@ -12,6 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
+    - name: Prepare env file for compose validation
+      run: |
+        if [ -f secrets.env.example ]; then
+          cp secrets.env.example secrets.env
+        else
+          printf '%s\n' "JWT_SECRET_KEY=test-jwt-secret-key-for-ci-please-change-32chars+" > secrets.env
+        fi
     
     - name: Validate docker compose
       run: docker compose config > /dev/null
