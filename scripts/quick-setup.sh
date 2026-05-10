@@ -8,7 +8,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo "🚀 CYBERSURX DEPLOYMENT - ULTRA BASIT KURULUM"
+echo "🚀 NEOMNIX DEPLOYMENT - ULTRA BASIT KURULUM"
 echo "=============================================="
 echo ""
 
@@ -46,7 +46,7 @@ read -sp "OLLAMA_API_KEY: " OLLAMA_KEY
 echo ""
 
 read -sp "ZAP_API_KEY (or press Enter for default): " ZAP_KEY
-ZAP_KEY=${ZAP_KEY:-aegis-zap-secret}
+ZAP_KEY=${ZAP_KEY:-neomnix-zap-secret}
 echo ""
 
 # Optional: Production

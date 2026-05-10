@@ -5,8 +5,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
-from src.db.models import Base, User, SessionLocal
+from src.db.models import Base, User, Tenant, SessionLocal
 from src.api.main import app, get_db
 from src.api.auth import get_password_hash, verify_password
 
@@ -14,7 +15,11 @@ from src.api.auth import get_password_hash, verify_password
 @pytest.fixture
 def test_db():
     """Create test database."""
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     Base.metadata.create_all(bind=engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
@@ -38,7 +43,19 @@ def client(test_db):
 @pytest.fixture
 def admin_user(test_db):
     """Create test admin user."""
+    tenant = Tenant(
+        id="tenant-test",
+        name="Test Tenant",
+        slug="test-tenant",
+        billing_email="billing@test.io",
+        tier="starter",
+        is_active=True,
+    )
+    test_db.add(tenant)
+    test_db.commit()
+
     user = User(
+        tenant_id=tenant.id,
         email="admin@test.io",
         hashed_password=get_password_hash("TestPassword123"),
         full_name="Test Admin",
@@ -100,7 +117,7 @@ class TestGetMe:
     def test_get_me_unauthenticated(self, client):
         """Test getting current user without auth."""
         response = client.get("/auth/me")
-        assert response.status_code == 403
+        assert response.status_code == 401
 
 
 class TestHealthCheck:

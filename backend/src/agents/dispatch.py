@@ -20,10 +20,17 @@ class ScannerDispatcher:
             }
             
         job_id = str(uuid.uuid4())
+        tenant_id = context.get("tenant_id") if context else None
+        if not tenant_id:
+            return {
+                "error": "Tenant context required for scanning",
+                "status": "failed",
+                "details": "Internal Error: tenant_id missing in dispatch context"
+            }
         
         try:
             # Create DB record
-            db_job = ScanJob(id=job_id, target=target, status="pending")
+            db_job = ScanJob(id=job_id, tenant_id=tenant_id, target=target, status="pending")
             db.add(db_job)
             db.commit()
             db.refresh(db_job)

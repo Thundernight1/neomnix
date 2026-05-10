@@ -5,6 +5,7 @@ from src.orchestrator import NeomnixOrchestrator
 from src.db.models import SessionLocal, ScanJob, init_db
 from datetime import datetime
 import json
+from typing import Any, Dict, List, Optional
 
 # Initialize DB on worker start
 init_db()
@@ -21,6 +22,12 @@ celery_app = Celery(
 
 # Initialize Orchestrator Singleton
 orchestrator = NeomnixOrchestrator()
+
+def serialize_artifacts(artifacts) -> List[Dict[str, Any]]:
+    return [a.model_dump(mode="json") for a in artifacts]
+
+def serialize_verdict(verdict) -> Dict[str, Any]:
+    return verdict.model_dump(mode="json")
 
 @celery_app.task(bind=True)
 def run_neomnix_scan(self, job_id: str, target: str, intensity: int = 1):
@@ -72,16 +79,17 @@ def run_neomnix_scan(self, job_id: str, target: str, intensity: int = 1):
         job.confidence_score = final_state['confidence']
         
         # Serialize Artifacts
-        job.findings = [a.model_dump() for a in final_state['artifacts']]
+        job.findings = serialize_artifacts(final_state['artifacts'])
         
         if final_state['verdict']:
-            job.compliance_report = final_state['verdict'].model_dump()
+            job.compliance_report = serialize_verdict(final_state['verdict'])
             
         db.commit()
         print(f"--- [Worker] Job {job_id} Completed Successfully ---")
         
     except Exception as e:
         print(f"!!! [Worker] Job {job_id} Failed: {e} !!!")
+        db.rollback()
         job.status = "failed"
         # Store error in findings or a separate field if we had one
         job.findings = [{"error": str(e)}]

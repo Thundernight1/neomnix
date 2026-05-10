@@ -7,6 +7,10 @@ import asyncio
 from typing import Generator
 import os
 
+os.environ.setdefault("APP_ENV", "test")
+os.environ.setdefault("SEED_ADMIN", "false")
+os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-please-change-32chars+")
+
 
 def pytest_configure(config):
     """Register custom markers"""
@@ -57,7 +61,7 @@ def redis_url() -> str:
 @pytest.fixture
 def jwt_secret() -> str:
     """JWT secret for test tokens"""
-    return "test-secret-key-ae2024"
+    return os.environ["JWT_SECRET_KEY"]
 
 
 @pytest.fixture

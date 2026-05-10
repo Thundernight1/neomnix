@@ -15,7 +15,7 @@ from src.worker.tasks import run_neomnix_scan
 from src.api.auth import (
     get_current_user, get_password_hash, verify_password,
     create_access_token, TokenResponse, UserCreate, UserResponse,
-    ChangePasswordRequest, require_role, log_audit, get_db, oauth2_scheme
+    ChangePasswordRequest, require_role, log_audit, get_db, oauth2_scheme, init_auth_settings
 )
 
 # AI Hub Imports
@@ -27,6 +27,7 @@ from src.agents.cloud_scanner import CloudScannerAgent
 from src.skills.sharktap_skill import SharkTapSkill
 
 import uuid, os, shutil, tempfile
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 from datetime import timedelta
 from fastapi import UploadFile, File
@@ -36,6 +37,8 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from src.integrations.stripe_mcp import StripeMCPClient
+
 
 app = FastAPI(
     title="Neomnix Platform API",
@@ -44,7 +47,34 @@ app = FastAPI(
 )
 
 # --- CORS (restrict in production via ALLOWED_ORIGINS env var) ---
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+def _env_flag(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+APP_ENV = (os.getenv("APP_ENV") or os.getenv("ENV") or "development").strip().lower()
+IS_PROD = APP_ENV in {"prod", "production"}
+IS_TEST = APP_ENV == "test"
+
+_origins_raw = os.getenv("ALLOWED_ORIGINS")
+if IS_PROD:
+    if _origins_raw is None or not _origins_raw.strip():
+        raise RuntimeError("ALLOWED_ORIGINS is required in production.")
+    ALLOWED_ORIGINS = [o.strip() for o in _origins_raw.split(",") if o.strip()]
+    if not ALLOWED_ORIGINS or "*" in ALLOWED_ORIGINS:
+        raise RuntimeError("ALLOWED_ORIGINS cannot include '*'.")
+else:
+    if _origins_raw and _origins_raw.strip():
+        ALLOWED_ORIGINS = [o.strip() for o in _origins_raw.split(",") if o.strip()]
+    else:
+        ALLOWED_ORIGINS = [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -90,12 +120,45 @@ class ReportResponse(BaseModel):
     details: Optional[dict]
 
 
+def _stripe_enabled() -> bool:
+    raw = os.getenv("STRIPE_ENABLED")
+    if raw is None:
+        return False
+    return raw.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+@app.get("/billing/status")
+async def billing_status():
+    return {
+        "enabled": _stripe_enabled(),
+        "stripe_api_key_configured": bool(os.getenv("STRIPE_API_KEY")),
+        "stripe_webhook_secret_configured": bool(os.getenv("STRIPE_WEBHOOK_SECRET")),
+    }
+
+
+@app.post("/billing/webhook")
+async def stripe_webhook(request: Request):
+    if not _stripe_enabled():
+        raise HTTPException(status_code=404, detail="Billing disabled")
+
+    signature = request.headers.get("Stripe-Signature")
+    if not signature:
+        raise HTTPException(status_code=400, detail="Missing Stripe-Signature header")
+
+    body = await request.body()
+    result = StripeMCPClient.handle_webhook_event(body, signature)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error") or "Invalid webhook")
+    return result
+
+
 # ╔══════════════════════════════════════════╗
 # ║              STARTUP                     ║
 # ╚══════════════════════════════════════════╝
 
 @app.on_event("startup")
 def on_startup():
+    init_auth_settings()
     init_db()
     # Register AI Agents
     ai_hub.register_agent("scanner", ScannerDispatcher())
@@ -104,6 +167,11 @@ def on_startup():
     ai_hub.register_agent("cloud_scanner", CloudScannerAgent())
 
     # --- Seed admin user if none exists ---
+    seed_admin_default = not IS_PROD and not IS_TEST
+    seed_admin = _env_flag("SEED_ADMIN", default=seed_admin_default)
+    if not seed_admin:
+        return
+
     db = SessionLocal()
     try:
         from src.db.models import Tenant
@@ -123,7 +191,9 @@ def on_startup():
             db.commit()
             db.refresh(default_tenant)
             
-            default_password = os.getenv("ADMIN_DEFAULT_PASSWORD", "Neomnix2026!")
+            default_password = os.getenv("ADMIN_DEFAULT_PASSWORD")
+            if default_password is None or not default_password.strip():
+                raise RuntimeError("ADMIN_DEFAULT_PASSWORD is required when SEED_ADMIN is enabled.")
             admin_email = os.getenv("ADMIN_EMAIL", "admin@neomnix.io")
             admin_user = User(
                 tenant_id=default_tenant.id,
@@ -136,13 +206,12 @@ def on_startup():
             )
             db.add(admin_user)
             db.commit()
-            print(f"✅ Admin account provisioned: {admin_email} — password change required on first login.")
     finally:
         db.close()
 
 
 
-# @app.post("/auth/login", response_model=TokenResponse)
+@app.post("/auth/login", response_model=TokenResponse)
 @limiter.limit("10/minute")
 async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Authenticate user and return JWT token."""
@@ -157,7 +226,7 @@ async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends
         raise HTTPException(status_code=403, detail="Account disabled. Contact admin.")
 
     token = create_access_token(data={"sub": user.email, "role": user.role})
-    log_audit(db, user.email, "login")
+    log_audit(db, user.tenant_id, user.email, "login")
 
     return TokenResponse(
         access_token=token,
@@ -177,6 +246,7 @@ async def register_user(
         raise HTTPException(status_code=409, detail="Email already registered")
 
     new_user = User(
+        tenant_id=current_user.tenant_id,
         email=user_data.email,
         hashed_password=get_password_hash(user_data.password),
         full_name=user_data.full_name,
@@ -186,7 +256,7 @@ async def register_user(
     db.commit()
     db.refresh(new_user)
 
-    log_audit(db, current_user.email, "user_created", resource_id=str(new_user.id))
+    log_audit(db, current_user.tenant_id, current_user.email, "user_created", resource_id=str(new_user.id))
     return UserResponse(
         id=new_user.id,
         email=new_user.email,
@@ -225,7 +295,7 @@ async def change_password(
     current_user.force_password_change = False
     db.commit()
 
-    log_audit(db, current_user.email, "password_changed", details={"forced_reset_cleared": True})
+    log_audit(db, current_user.tenant_id, current_user.email, "password_changed", details={"forced_reset_cleared": True})
     return {"message": "Password updated successfully."}
 
 
@@ -240,12 +310,17 @@ async def execute_ai_command(
     current_user: User = Depends(get_current_user)
 ):
     """Execute a natural language command through the AI Hub."""
+    agent_name = ai_hub._determine_intent(request.command)
+    if agent_name == "llm" and not os.getenv("OLLAMA_API_KEY"):
+        raise HTTPException(status_code=503, detail="LLM is not configured.")
+
     context = request.context or {}
     context['db'] = db
     context['user'] = current_user.email
+    context['tenant_id'] = current_user.tenant_id
 
     result = await ai_hub.process_command(request.command, context)
-    log_audit(db, current_user.email, "ai_command", details={"command": request.command})
+    log_audit(db, current_user.tenant_id, current_user.email, "ai_command", details={"command": request.command})
     return result
 
 @app.post("/scan", response_model=ScanResponse)
@@ -260,6 +335,7 @@ async def trigger_scan(
 
     new_job = ScanJob(
         id=job_id,
+        tenant_id=current_user.tenant_id,
         target=scan_request.target,
         status="pending",
         initiated_by=current_user.email
@@ -274,7 +350,7 @@ async def trigger_scan(
     # Dispatch Celery Worker
     run_neomnix_scan.delay(job_id, scan_request.target, intensity)
 
-    log_audit(db, current_user.email, "scan_initiated", resource_id=job_id,
+    log_audit(db, current_user.tenant_id, current_user.email, "scan_initiated", resource_id=job_id,
               details={"target": scan_request.target, "scan_type": scan_request.scan_type})
 
     return ScanResponse(job_id=job_id, status="pending", target=scan_request.target)
@@ -282,7 +358,9 @@ async def trigger_scan(
 @app.get("/scans", response_model=List[ReportResponse])
 async def list_scans(skip: int = 0, limit: int = 20, db: Session = Depends(get_db), current_user: User = Depends(require_role("viewer"))):
     """List recent scans with pagination."""
-    jobs = db.query(ScanJob).order_by(ScanJob.id.desc()).offset(skip).limit(limit).all()
+    jobs = db.query(ScanJob).filter(
+        ScanJob.tenant_id == current_user.tenant_id
+    ).order_by(ScanJob.created_at.desc()).offset(skip).limit(limit).all()
     
     results = []
     for job in jobs:
@@ -313,7 +391,10 @@ def get_scan_status(
     current_user: User = Depends(get_current_user)
 ):
     """Get scan status and results with real compliance score."""
-    job = db.query(ScanJob).filter(ScanJob.id == job_id).first()
+    job = db.query(ScanJob).filter(
+        ScanJob.id == job_id,
+        ScanJob.tenant_id == current_user.tenant_id
+    ).first()
     if not job:
         raise HTTPException(status_code=404, detail="Scan Job not found")
 
@@ -401,12 +482,14 @@ def get_dashboard_stats(
 ):
     """Aggregated dashboard stats with real compliance score — FIX 3 + FIX 8."""
     # --- FIX 8: SQL-level aggregation instead of loading all rows ---
-    total_scans = db.query(func.count(ScanJob.id)).scalar() or 0
-    completed_scans = db.query(func.count(ScanJob.id)).filter(ScanJob.status == "completed").scalar() or 0
-    failed_scans = db.query(func.count(ScanJob.id)).filter(ScanJob.status == "failed").scalar() or 0
+    tenant_filter = (ScanJob.tenant_id == current_user.tenant_id)
+    total_scans = db.query(func.count(ScanJob.id)).filter(tenant_filter).scalar() or 0
+    completed_scans = db.query(func.count(ScanJob.id)).filter(tenant_filter, ScanJob.status == "completed").scalar() or 0
+    failed_scans = db.query(func.count(ScanJob.id)).filter(tenant_filter, ScanJob.status == "failed").scalar() or 0
 
     # Get recent completed jobs for score calculation (limit to last 10)
     recent_completed = db.query(ScanJob).filter(
+        tenant_filter,
         ScanJob.status == "completed"
     ).order_by(ScanJob.created_at.desc()).limit(10).all()
 
@@ -425,7 +508,7 @@ def get_dashboard_stats(
                     high_risks += 1
 
     # Recent activity (last 5 jobs, any status)
-    recent_jobs = db.query(ScanJob).order_by(ScanJob.created_at.desc()).limit(5).all()
+    recent_jobs = db.query(ScanJob).filter(tenant_filter).order_by(ScanJob.created_at.desc()).limit(5).all()
     activity = [{
         "id": job.id,
         "target": job.target,
@@ -458,30 +541,57 @@ async def get_pdf_report(
     current_user: User = Depends(get_current_user)
 ):
     """Serves the generated PDF report for a specific job and framework."""
-    filename = f"{framework}_{job_id}.pdf"
-    file_path = os.path.join("reports", "pdf", filename)
+    allowed_frameworks = {"HIPAA-2026", "WA-MHMDA", "NIST-800-53", "SOC2"}
+    if framework not in allowed_frameworks:
+        raise HTTPException(status_code=400, detail="Unsupported framework")
 
-    if not os.path.exists(file_path):
+    try:
+        uuid.UUID(job_id)
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid job_id")
+
+    job = db.query(ScanJob).filter(
+        ScanJob.id == job_id,
+        ScanJob.tenant_id == current_user.tenant_id
+    ).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Scan Job not found")
+
+    filename = f"{framework}_{job_id}.pdf"
+    pdf_dir = Path("reports") / "pdf"
+    pdf_dir_resolved = pdf_dir.resolve()
+    file_path = (pdf_dir / filename).resolve()
+    if pdf_dir_resolved not in file_path.parents:
+        raise HTTPException(status_code=400, detail="Invalid report path")
+
+    if not file_path.exists():
         # Fallback: broader search if exact match fails
-        pdf_dir = os.path.join("reports", "pdf")
-        if os.path.isdir(pdf_dir):
+        if pdf_dir.is_dir():
             matched_file = next(
-                (f for f in os.listdir(pdf_dir) 
-                 if job_id in f and framework in f and f.endswith(".pdf")),
+                (
+                    f.name for f in pdf_dir.iterdir()
+                    if f.is_file()
+                    and f.name.endswith(".pdf")
+                    and job_id in f.name
+                    and framework in f.name
+                ),
                 None
             )
             if matched_file:
-                file_path = os.path.join(pdf_dir, matched_file)
+                matched_path = (pdf_dir / matched_file).resolve()
+                if pdf_dir_resolved not in matched_path.parents:
+                    raise HTTPException(status_code=400, detail="Invalid report path")
+                file_path = matched_path
             else:
                 raise HTTPException(status_code=404, detail="Executive Report not found. Ensure the scan has completed.")
         else:
             raise HTTPException(status_code=404, detail="Reports directory does not exist yet.")
 
-    log_audit(db, current_user.email, "report_downloaded", resource_id=job_id,
+    log_audit(db, current_user.tenant_id, current_user.email, "report_downloaded", resource_id=job_id,
               details={"framework": framework})
 
     return FileResponse(
-        path=file_path,
+        path=str(file_path),
         media_type="application/pdf",
         filename=filename
     )
@@ -526,6 +636,7 @@ async def analyze_pcap_upload(
         job_id = str(uuid.uuid4())
         new_job = ScanJob(
             id=job_id,
+            tenant_id=current_user.tenant_id,
             target=f"pcap://{file.filename}",
             status="running",
             initiated_by=current_user.email
@@ -533,7 +644,7 @@ async def analyze_pcap_upload(
         db.add(new_job)
         db.commit()
 
-        log_audit(db, current_user.email, "scan_initiated", resource_id=job_id,
+        log_audit(db, current_user.tenant_id, current_user.email, "scan_initiated", resource_id=job_id,
                   details={"source": "sharktap", "filename": file.filename,
                            "size_mb": round(file_size_mb, 2)})
 

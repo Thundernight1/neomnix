@@ -55,9 +55,9 @@ class PDFReportExporter:
             f"This report presents the results of an automated compliance scan against the {framework} framework.",
             f"A total of {total} finding(s) were identified during the assessment.",
             f"",
-            f"  • Critical: {critical_count}",
-            f"  • High: {high_count}",
-            f"  • Medium: {medium_count}",
+            f"  - Critical: {critical_count}",
+            f"  - High: {high_count}",
+            f"  - Medium: {medium_count}",
             f"",
             f"Overall Determination: {status.upper().replace('_', ' ')}",
             f"Confidence Score: {confidence:.1%}",
@@ -91,9 +91,11 @@ class PDFReportExporter:
 
                 pdf.set_text_color(*self.TEXT_COLOR)
                 pdf.set_font("Helvetica", size=9)
+                pdf.set_x(pdf.l_margin)
                 pdf.multi_cell(0, 5, f"Description: {desc}")
                 pdf.set_font("Helvetica", "I", 8)
                 pdf.set_text_color(*self.SUBTLE_COLOR)
+                pdf.set_x(pdf.l_margin)
                 pdf.multi_cell(0, 5, f"Evidence: {evidence}")
                 pdf.ln(3)
 

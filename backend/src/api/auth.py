@@ -17,9 +17,22 @@ from src.db.models import User, SessionLocal, AuditLog
 import os
 
 # --- Configuration ---
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "neomnix-platform-secret-change-me-in-prod")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))  # 8 hours
+JWT_SECRET_KEY_MIN_LENGTH = 32
+
+
+def get_jwt_secret_key() -> str:
+    value = os.getenv("JWT_SECRET_KEY")
+    if value is None or not value.strip():
+        raise RuntimeError("JWT_SECRET_KEY environment variable is required.")
+    if len(value) < JWT_SECRET_KEY_MIN_LENGTH:
+        raise RuntimeError(f"JWT_SECRET_KEY must be at least {JWT_SECRET_KEY_MIN_LENGTH} characters.")
+    return value
+
+
+def init_auth_settings() -> None:
+    get_jwt_secret_key()
 
 # --- Password Hashing ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -69,7 +82,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, get_jwt_secret_key(), algorithm=ALGORITHM)
 
 def get_db():
     db = SessionLocal()
@@ -90,7 +103,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
@@ -115,9 +128,9 @@ def require_role(*roles):
     return role_checker
 
 
-def log_audit(db: Session, user_email: str, action: str, resource_id: str = None, details: dict = None, ip: str = None):
-    """Write an entry to the audit log."""
+def log_audit(db: Session, tenant_id: str, user_email: str, action: str, resource_id: str = None, details: dict = None, ip: str = None):
     entry = AuditLog(
+        tenant_id=tenant_id,
         user_email=user_email,
         action=action,
         resource_id=resource_id,

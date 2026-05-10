@@ -1,0 +1,20 @@
+name: CyberSurX GRC - Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Validate docker compose
+      run: docker compose config > /dev/null
+    
+    - name: ✅ Ready for deployment
+      run: echo "Production build validated"

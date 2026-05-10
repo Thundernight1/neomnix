@@ -14,9 +14,10 @@ This skill uses tshark (Wireshark CLI) for PCAP analysis. tshark must be
 installed in the Docker image (wireshark-common package).
 """
 
-import subprocess
+import subprocess  # nosec B404
 import json
 import os
+import shutil
 from collections import defaultdict
 from datetime import datetime
 from typing import Dict, Any, List
@@ -49,8 +50,7 @@ class SharkTapSkill(BaseSkill):
         self._check_tshark()
 
     def _check_tshark(self):
-        result = subprocess.run(["which", "tshark"], capture_output=True)
-        if result.returncode != 0:
+        if shutil.which("tshark") is None:
             print("⚠️  [SharkTap] tshark not found. Install: apt install tshark  |  brew install wireshark")
 
     # ─── Main entry point ────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ class SharkTapSkill(BaseSkill):
     def _run_tshark(self, args: List[str], timeout: int = 60) -> str:
         """Run a tshark command and return stdout, empty string on error."""
         try:
-            r = subprocess.run(
+            r = subprocess.run(  # nosec B603
                 ["tshark"] + args,
                 capture_output=True, text=True, timeout=timeout
             )

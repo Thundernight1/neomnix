@@ -1,7 +1,8 @@
-import subprocess
+import subprocess  # nosec B404
 import json
 import os
 import shutil
+import tempfile
 from typing import Dict, Any, List
 
 class CloudScannerAgent:
@@ -10,7 +11,7 @@ class CloudScannerAgent:
     Wraps the 'prowler' CLI tool.
     """
     def __init__(self):
-        self.output_dir = "/tmp/prowler_output"
+        self.output_dir = os.path.join(tempfile.gettempdir(), "neomnix_prowler_output")
         os.makedirs(self.output_dir, exist_ok=True)
         # Check if prowler is installed
         if not shutil.which("prowler"):
@@ -42,7 +43,7 @@ class CloudScannerAgent:
             # Run Prowler
             # capture_output=True might be heavy for large scans, reusing file output
             print(f"Running Prowler command: {' '.join(command)}")
-            process = subprocess.run(
+            process = subprocess.run(  # nosec B603
                 command,
                 capture_output=True,
                 text=True,

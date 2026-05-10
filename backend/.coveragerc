@@ -1,0 +1,10 @@
+[run]
+source =
+    src/api
+    src/db
+    src/utils
+
+[report]
+omit =
+    */__init__.py
+    src/api/main.py

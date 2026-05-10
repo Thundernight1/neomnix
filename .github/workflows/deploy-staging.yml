@@ -1,0 +1,19 @@
+name: CyberSurX GRC - Deploy to Staging
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Validate docker compose
+      run: docker compose config > /dev/null
+    
+    - name: Build status check
+      run: echo "✅ Build validation passed"

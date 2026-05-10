@@ -9,8 +9,8 @@ A Docker-based security scanning and compliance reporting system.
 docker compose up -d
 
 # View logs
-docker logs -f aegis-api
-docker logs -f aegis-worker
+docker logs -f neomnix-api
+docker logs -f neomnix-worker
 
 # Stop all services
 docker compose down
@@ -64,7 +64,7 @@ CI/CD pipelines run on every push to `main`:
 - Build Dockerfiles
 - Run checks
 
-View status: https://github.com/Thundernight1/HIPAA-SEC-SOC2/actions
+View status: https://github.com/Thundernight1/neomnix/actions
 
 ## Admin Access
 
@@ -76,7 +76,7 @@ Change on first login.
 
 ## Database
 
-SQLite by default at `./neomnix.db`
+PostgreSQL by default via docker-compose (see `DATABASE_URL`).
 
 Reset:
 ```bash

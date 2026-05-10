@@ -85,7 +85,7 @@ export default function AICommandTerminal() {
             <div className="p-3 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-blue-500" />
-                <span className="text-sm font-bold tracking-tight uppercase">Aegis AI Terminal</span>
+                <span className="text-sm font-bold tracking-tight uppercase">Neomnix AI Terminal</span>
                 <Badge variant="outline" className="text-[10px] h-4 bg-green-950 border-green-900 text-green-400">ONLINE</Badge>
               </div>
               <div className="flex items-center gap-1">

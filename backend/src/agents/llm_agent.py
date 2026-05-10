@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 class LLMAgent:
     """
     Agent responsible for Natural Language Understanding and Generation.
-    Supports Ollama Cloud API and Mock mode.
+    Supports Ollama Cloud API and fallback mode.
     """
     def __init__(self):
         self.api_key = os.getenv("OLLAMA_API_KEY")
@@ -17,15 +17,15 @@ class LLMAgent:
         if self.api_key:
             self.provider = "ollama"
         else:
-            self.provider = "mock"
-            print(f"[{self.__class__.__name__}] No API Key found. Running in MOCK mode.")
+            self.provider = "fallback"
+            print(f"[{self.__class__.__name__}] No API Key found. Running in fallback mode.")
 
     async def chat(self, user_query: str, context: Optional[Dict] = None) -> Dict[str, Any]:
         """
         Process natural language query.
         """
-        if self.provider == "mock":
-            return self._mock_response(user_query)
+        if self.provider == "fallback":
+            return self._fallback_response(user_query)
         
         if self.provider == "ollama":
             return self._call_ollama(user_query, context)
@@ -79,7 +79,7 @@ class LLMAgent:
                 "status": "error"
             }
 
-    def _mock_response(self, query: str) -> Dict[str, Any]:
+    def _fallback_response(self, query: str) -> Dict[str, Any]:
         """
         Production fallback: Return meaningful responses when LLM is unavailable.
         In production, always ensure OLLAMA_API_KEY is set.

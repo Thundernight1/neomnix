@@ -25,9 +25,15 @@ class ComplianceAgent:
         try:
             with open(self.rules_path, "r") as f:
                 data = json.load(f)
-                return {m["technical_trigger"]: m["controls"] for m in data.get("mappings", [])}
+                return {
+                    self._normalize_trigger_key(m["technical_trigger"]): m["controls"]
+                    for m in data.get("mappings", [])
+                }
         except Exception as e:
             raise RuntimeError(f"Failed to load compliance rules from {self.rules_path}: {e}")
+
+    def _normalize_trigger_key(self, value: str) -> str:
+        return " ".join(value.lower().split())
 
     def evaluate(self, artifacts: List[VulnerabilityArtifact], confidence: float, job_id: str = "") -> ComplianceVerdict:
         print("--- [ComplianceAgent] Evaluating Compliance against Multiple Frameworks ---")
@@ -40,12 +46,13 @@ class ComplianceAgent:
         
         for artifact in artifacts:
             if artifact.severity in ('high', 'critical'):
-                controls = self.mapping_db.get(artifact.description)
+                artifact_key = self._normalize_trigger_key(artifact.description)
+                controls = self.mapping_db.get(artifact_key)
                 
                 if not controls:
                     # Fuzzy match — check if any rule key is a substring of the finding or vice versa
                     for key, val in self.mapping_db.items():
-                        if key in artifact.description or artifact.description in key:
+                        if key in artifact_key or artifact_key in key:
                             controls = val
                             break
                 
@@ -142,7 +149,7 @@ The automated Neomnix system performed a zero-trust security scan.
         frameworks = set()
         for control in verdict.mapped_controls:
             if control.startswith("HIPAA"): frameworks.add("HIPAA-2026")
-            elif control.startswith("MHMDA"): frameworks.add("WA-MHMDA")
+            elif control.startswith("WA-MHMDA"): frameworks.add("WA-MHMDA")
             elif control.startswith("NIST"): frameworks.add("NIST-800-53")
             elif control.startswith("SOC2"): frameworks.add("SOC2")
         if not frameworks:
