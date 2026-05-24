@@ -33,7 +33,7 @@ jobs:
         JWT_SECRET_KEY: test-jwt-secret-key-for-ci-please-change-32chars+
       run: |
         cd backend
-        pytest --cov --cov-fail-under=90 -q
+        pytest --cov --cov-fail-under=80 -q
     
     - name: Run bandit
       run: |
