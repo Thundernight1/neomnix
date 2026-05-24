@@ -10,8 +10,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from src.db.models import get_db
-from src.api.auth import get_current_user, require_role
+
+from src.api.auth import get_current_user, require_role, get_db
 from src.services.gap_analyzer import analyze_gaps
 from src.worker.tasks import celery_app
 
