@@ -9,6 +9,8 @@ import AuditLog from './components/AuditLog';
 import NotFound from './components/NotFound';
 import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
 import ErrorBoundary from './components/ErrorBoundary';
+import GapAnalysis from './components/GapAnalysis';
+import Crossmap from './components/Crossmap';
 import { useTheme } from './lib/useTheme';
 
 function AppInner() {

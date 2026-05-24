@@ -38,6 +38,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from src.integrations.stripe_mcp import StripeMCPClient
+from src.api.gap import router as gap_router
 
 
 app = FastAPI(
@@ -703,6 +704,12 @@ async def analyze_pcap_upload(
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
 
+
+
+# ╔══════════════════════════════════════════╗
+# ║           GAP ANALYSIS ROUTER            ║
+# ╚══════════════════════════════════════════╝
+app.include_router(gap_router)
 
 # ╔══════════════════════════════════════════╗
 # ║           HEALTH & AUDIT                 ║
