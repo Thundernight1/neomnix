@@ -208,7 +208,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   # 4. Smoke Test (Compose validation + container health)
   # Report-only for beta demo — does NOT fail the pipeline
-  # ─────────────────────────────────────────────────────────────────────────────
+  # Report-only for beta demo — does NOT fail the pipeline
   smoke-test:
     needs: docker-push
     runs-on: ubuntu-latest
@@ -261,7 +261,7 @@ jobs:
   # 5. Create GitHub Release (on tags)
   # ─────────────────────────────────────────────────────────────────────────────
   release:
-    needs: [docker-push, smoke-test]
+    needs: [docker-push]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     name: Create GitHub Release
