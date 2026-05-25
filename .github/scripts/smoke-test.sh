@@ -8,6 +8,7 @@ API_URL="http://localhost:8000"
 FE_URL="http://localhost:3000"
 TIMEOUT=180
 INTERVAL=5
+CURL_OPTS="-s -o /dev/null -w %{http_code} --connect-timeout 5 --max-time 8"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -36,7 +37,7 @@ wait_for() {
 
     while [ $attempt -lt $max_attempts ]; do
         local code
-        code=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || true)
+        code=$(curl ${CURL_OPTS} "$url" 2>/dev/null || true)
         if [ "$code" = "$expect_code" ]; then
             echo -e "${GREEN}✅ up${NC}"
             return 0
@@ -62,7 +63,7 @@ echo "--------------------------------"
 login_err=""
 if [ $api_ok -eq 1 ]; then
     # Test auth login returns 401 without credentials (endpoint reachable)
-    resp=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL/auth/login" \
+    resp=$(curl ${CURL_OPTS} -X POST "$API_URL/auth/login" \
         -H "Content-Type: application/x-www-form-urlencoded" \
         -d "username=test&password=test" 2>/dev/null || true)
     if [ "$resp" = "401" ] || [ "$resp" = "422" ]; then
@@ -74,7 +75,7 @@ if [ $api_ok -eq 1 ]; then
     fi
 
     # Test billing/status (no auth required)
-    bill=$(curl -s "$API_URL/billing/status" 2>/dev/null || true)
+    bill=$(curl -s --connect-timeout 5 --max-time 8 "$API_URL/billing/status" 2>/dev/null || true)
     if echo "$bill" | grep -q '"enabled"'; then
         echo -e "  🔍 Billing status endpoint ${GREEN}✅ reachable${NC}"
         billing_ok=1
@@ -92,7 +93,7 @@ echo "Stage 3: Frontend content checks"
 echo "--------------------------------"
 
 if [ $fe_ok -eq 1 ]; then
-    body=$(curl -s "$FE_URL" 2>/dev/null || true)
+    body=$(curl -s --connect-timeout 5 --max-time 8 "$FE_URL" 2>/dev/null || true)
     if echo "$body" | grep -qi "neomnix\|login\|sign in\|div"; then
         echo -e "  🔍 HTML body present       ${GREEN}✅ OK${NC}"
         content_ok=1

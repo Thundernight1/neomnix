@@ -243,11 +243,11 @@ jobs:
         timeout-minutes: 8
 
       - name: Wait for services to warm up
-        run: sleep 30
+        run: sleep 90
 
       - name: Run smoke tests
         run: bash .github/scripts/smoke-test.sh || true
-        timeout-minutes: 5
+        timeout-minutes: 15
 
       - name: Dump container logs
         if: always()
