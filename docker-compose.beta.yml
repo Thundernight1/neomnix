@@ -1,0 +1,174 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Neomnix Beta Demo — Production-like Docker Compose
+#
+# Usage:
+#   cp secrets.env.example secrets.env    # then edit with real values
+#   docker compose -f docker-compose.beta.yml pull
+#   docker compose -f docker-compose.beta.yml up -d
+#
+# Services exposed:
+#   API:        http://localhost:8000
+#   Frontend:   http://localhost:3000
+#   Redis:      localhost:6379  (internal-only recommended for real prod)
+#
+# Note: images point to GHCR. Replace OWNER if you fork the repo.
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+
+  api:
+    container_name: neomnix-beta-api
+    image: ghcr.io/thundernight1/neomnix-api:beta-latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    command: ./start.sh
+    env_file:
+      - ./secrets.env
+    environment:
+      - APP_ENV=production
+      - SEED_ADMIN=true
+      - ALLOWED_ORIGINS=http://localhost:3000
+      - DATABASE_URL=${DATABASE_URL:-postgresql://neomnix:changeme@postgres:5432/neomnix_db}
+      - REDIS_URL=redis://redis:6379/0
+      - STRIPE_ENABLED=false
+      - STRIPE_API_KEY=demo
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY:-}
+    volumes:
+      - reports_data:/app/reports
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  worker:
+    container_name: neomnix-beta-worker
+    image: ghcr.io/thundernight1/neomnix-api:beta-latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    command: celery -A src.worker.tasks worker --loglevel=info --concurrency=2
+    env_file:
+      - ./secrets.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://neomnix:changeme@postgres:5432/neomnix_db}
+      - REDIS_URL=redis://redis:6379/0
+      - ZAP_HOST=zap
+      - ZAP_PORT=8080
+    volumes:
+      - reports_data:/app/reports
+    depends_on:
+      redis:
+        condition: service_healthy
+      zap:
+        condition: service_started
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  redis:
+    container_name: neomnix-beta-redis
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  zap:
+    container_name: neomnix-beta-zap
+    image: ghcr.io/zaproxy/zaproxy:stable
+    command: >
+      zap.sh -daemon -host 0.0.0.0 -port 8080
+      -config api.key=$${ZAP_API_KEY}
+      -config api.addrs.addr.name=.*
+      -config api.addrs.addr.regex=true
+    env_file:
+      - ./secrets.env
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  frontend:
+    container_name: neomnix-beta-frontend
+    image: ghcr.io/thundernight1/neomnix-frontend:beta-latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    volumes:
+      - ./theme.json:/usr/share/nginx/html/theme.json:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
+  postgres:
+    container_name: neomnix-beta-postgres
+    image: postgres:17-alpine
+    env_file:
+      - ./secrets.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-neomnix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-neomnix_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/scripts/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-neomnix} -d ${POSTGRES_DB:-neomnix_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+volumes:
+  reports_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

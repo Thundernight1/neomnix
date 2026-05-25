@@ -1,0 +1,65 @@
+# Multi-stage production Dockerfile for Neomnix API
+# Uses non-root, lighter base, and proper layer caching
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 1: Builder
+# ─────────────────────────────────────────────────────────────────────────────
+FROM python:3.10-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+COPY requirements.txt .
+RUN pip install --user -r requirements.txt
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 2: Production Runtime
+# ─────────────────────────────────────────────────────────────────────────────
+FROM python:3.10-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH=/home/neomnix/.local/bin:$PATH
+
+# Install runtime system deps (nmap for scanner, postgresql client)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nmap \
+    curl \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r neomnix && useradd -r -g neomnix -d /home/neomnix -m neomnix
+
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder --chown=neomnix:neomnix /root/.local /home/neomnix/.local
+
+# Copy source code
+COPY --chown=neomnix:neomnix src/ ./src/
+COPY --chown=neomnix:neomnix scripts/ ./scripts/
+COPY --chown=neomnix:neomnix alembic.ini .
+COPY --chown=neomnix:neomnix start.sh .
+
+# Ensure scripts are executable
+RUN chmod +x start.sh
+
+# Create reports directory owned by neomnix
+RUN mkdir -p /app/reports/pdf && chown -R neomnix:neomnix /app/reports
+
+USER neomnix
+
+EXPOSE 8000
+
+# Default: run migrations then start production server
+CMD ["./start.sh"]

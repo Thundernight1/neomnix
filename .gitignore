@@ -26,3 +26,4 @@ backend/.coverage
 frontend/.tmp/
 
 backend/data/
+frontend/.tmp/
