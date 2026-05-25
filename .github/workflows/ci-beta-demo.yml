@@ -20,8 +20,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  API_IMAGE: ghcr.io/${{ github.repository_owner }}/neomnix-api
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/neomnix-frontend
+  API_IMAGE: ghcr.io/${{ github.repository_owner }}/neomnix/backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/neomnix/frontend
   PYTHON_VERSION: '3.10'
   NODE_VERSION: '20'
 
@@ -189,14 +189,14 @@ jobs:
       - name: Generate build attestation (API)
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ github.repository_owner }}/neomnix-api
+          subject-name: ${{ env.API_IMAGE }}
           subject-digest: ${{ steps.build-api.outputs.digest }}
           push-to-registry: true
 
       - name: Generate build attestation (Frontend)
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ github.repository_owner }}/neomnix-frontend
+          subject-name: ${{ env.FRONTEND_IMAGE }}
           subject-digest: ${{ steps.build-frontend.outputs.digest }}
           push-to-registry: true
 

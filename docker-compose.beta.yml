@@ -18,7 +18,7 @@ services:
 
   api:
     container_name: neomnix-beta-api
-    image: ghcr.io/thundernight1/neomnix-api:beta-latest
+    image: ghcr.io/thundernight1/neomnix/backend:beta-latest
     pull_policy: always
     env_file:
       - ./secrets.env
@@ -54,7 +54,7 @@ services:
 
   worker:
     container_name: neomnix-beta-worker
-    image: ghcr.io/thundernight1/neomnix-api:beta-latest
+    image: ghcr.io/thundernight1/neomnix/backend:beta-latest
     pull_policy: always
     env_file:
       - ./secrets.env
@@ -113,7 +113,7 @@ services:
 
   frontend:
     container_name: neomnix-beta-frontend
-    image: ghcr.io/thundernight1/neomnix-frontend:beta-latest
+    image: ghcr.io/thundernight1/neomnix/frontend:beta-latest
     pull_policy: always
     ports:
       - "3000:80"
