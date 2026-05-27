@@ -1,116 +1,197 @@
-# Neomnix — Multi-Framework Compliance Scanning Platform
+# Neomnix — AI-Powered Multi-Framework Compliance Platform
 
-Neomnix, bir şirketin sistemini tarayarak bulunan güvenlik açıklarını otomatik olarak **HIPAA, SOC2, WA-MHMDA, NIST-800-53, CCM-4.0 ve SEC-2023** gibi birden fazla uyumluluk çerçevesine eş zamanlı olarak eşleyen, yapay zeka destekli bir GRC (Governance, Risk & Compliance) platformudur.
+> Scan once. Map everywhere. Stay compliant.
 
-Tek bir tarama sonucunda şu soruyu yanıtlar: _"Bu güvenlik açığı hangi yasaları ihlal ediyor ve nasıl düzeltilir?"_
+Neomnix is an AI-driven GRC (Governance, Risk & Compliance) platform that automatically maps security vulnerabilities to multiple compliance frameworks simultaneously — HIPAA, SOC2, NIST-800-53, WA-MHMDA, CCM-4.0, and SEC-2023 — from a single scan.
+
+[![CI](https://github.com/Thundernight1/neomnix/actions/workflows/ci.yml/badge.svg)](https://github.com/Thundernight1/neomnix/actions)
 
 ---
 
-## Özellikler
+## How It Works
 
-### Çok Çerçeveli Uyumluluk Eşleme (Cross-Mapping)
-- Bulunan her güvenlik açığı otomatik olarak HIPAA, SOC2, NIST-800-53, WA-MHMDA, CCM-4.0 ve SEC-2023 kontrollerine eşlenir
-- TF-IDF cosine similarity + Jaccard keyword algoritmasıyla N×N framework overlap matrisi hesaplanır
-- `compliance_rules.json` üzerinden kural tabanlı + semantik eşleme birlikte çalışır
+1. **Scan** — Target a domain/IP or upload a PCAP file
+2. **Detect** — Scanner agents find vulnerabilities and misconfigurations
+3. **Map** — CrossMap engine maps every finding to relevant compliance controls across all frameworks using TF-IDF cosine similarity + Jaccard keyword matching
+4. **Report** — PDF and JSON reports generated per framework, audit-ready
 
-### SharkTap — Pasif Ağ Analizi
-- `.pcap`, `.pcapng`, `.cap` dosyaları yüklenip analiz edilir (`POST /scan/pcap`)
-- DNS tunneling, şifresiz DB trafiği, FTP/Telnet oturumları, büyük veri çıkışı otomatik tespit edilir
-- Tüm bulgular doğrudan compliance kontrollerine beslenir
+---
+
+## Features
+
+### Multi-Framework Cross-Mapping
+- Every finding is automatically mapped to HIPAA, SOC2, NIST-800-53, WA-MHMDA, CCM-4.0, and SEC-2023 controls in a single pass
+- Scoring engine: 60% semantic similarity + 30% keyword match + 10% expert weight
+- Auto-match (≥0.75), review-required (≥0.50), or unique buckets assigned per mapping
+- Full N×N framework overlap matrix computed via SQL
+
+### SharkTap — Passive Network Analysis
+- Upload `.pcap`, `.pcapng`, or `.cap` files via `POST /scan/pcap`
+- Detects DNS tunneling, unencrypted database traffic, FTP/Telnet sessions, large data exfiltration patterns
+- All detected threats fed directly into the compliance pipeline
 
 ### Gap Analysis
-- `POST /api/gap/analyze` → Celery worker üzerinde async gap analizi başlatır
-- Eksik UCL kontrolleri tespit edilir, AI önerileri eklenir
-- `GET /api/gap/report/{org_id}` ile framework filtrelemeli tam rapor alınır
+- `POST /api/gap/analyze` — triggers async gap analysis via Celery worker
+- Identifies missing UCL controls against target frameworks
+- AI-generated remediation recommendations per gap
+- `GET /api/gap/report/{org_id}` — returns full report with framework filter support
 
 ### Cloud Security Posture Management (CSPM)
-- Prowler entegrasyonu ile AWS, Azure ve GCP taraması
-- `"scan aws"` gibi doğal dil komutlarıyla AI Hub üzerinden tetiklenir
+- Prowler-powered scanning for AWS, Azure, and GCP
+- Triggered via natural language: `"scan aws"`, `"check azure security"`
+- Results returned with failed check counts and report path
 
-### AI Hub — Doğal Dil Komut Yönlendirme
-- `POST /command` endpointine doğal dil gönderilir
-- Anahtar kelime tespiti ile scanner, cross_mapper, cloud_scanner veya LLM ajanına yönlendirilir
-- Ollama LLM entegrasyonu desteklenir
+### AI Hub — Natural Language Command Routing
+- `POST /command` accepts plain English instructions
+- Intent detection routes to: `scanner`, `cross_mapper`, `cloud_scanner`, or `llm` agent
+- Ollama LLM integration for explain and chat commands
 
-### PDF & Markdown Rapor Üretimi
-- Her tarama sonunda framework başına ayrı Markdown + PDF raporu otomatik oluşturulur
-- `GET /reports/pdf/{job_id}/{framework}` ile indirilir
-- Desteklenen: `HIPAA-2026`, `WA-MHMDA`, `NIST-800-53`, `SOC2`
+### Compliance Scoring
+- Real-time score computed from scan findings
+- Critical finding: −15 pts | High: −8 pts | Medium: −3 pts
+- Partial recovery bonus (up to +10 pts) based on control mapping coverage
+- Score clamped to [0, 100]
 
-### Güvenlik & Yetkilendirme
-- JWT tabanlı kimlik doğrulama (admin / analyst / viewer rol hiyerarşisi)
-- Multi-tenancy: her kullanıcı yalnızca kendi kiracısının verilerini görür
-- Rate limiting (200 req/dk, login 10 req/dk)
-- Production CORS koruması (`ALLOWED_ORIGINS` zorunlu, `*` reddedilir)
-- Tüm işlemler audit log'a yazılır
+### PDF & Markdown Reports
+- Auto-generated per framework after every scan
+- Download via `GET /reports/pdf/{job_id}/{framework}`
+- Supported frameworks: `HIPAA-2026`, `WA-MHMDA`, `NIST-800-53`, `SOC2`
+
+### Security & Auth
+- JWT-based authentication with role hierarchy: `admin` / `analyst` / `viewer`
+- Multi-tenancy: every user is fully isolated to their own tenant
+- Rate limiting: 200 req/min global, 10 req/min on login
+- Production CORS enforcement (`ALLOWED_ORIGINS` required, `*` rejected)
+- Full audit trail on every action (scan, login, download, command)
 
 ### Billing (Stripe)
-- `STRIPE_ENABLED=true` ile aktif edilir
-- Webhook imza doğrulaması dahil
-- `GET /billing/status` ile durum sorgulanır
+- Opt-in via `STRIPE_ENABLED=true`
+- Webhook signature verification included
+- `GET /billing/status` for live configuration status
 
 ---
 
-## Hızlı Başlangıç
+## Quick Start
 
 ```bash
-# Tüm servisleri başlat
+# Copy environment file
+cp secrets.env.example .env
+
+# Start all services
 docker compose up -d
 
-# Logları izle
+# Follow logs
 docker logs -f neomnix-api
 docker logs -f neomnix-worker
 
-# Durdur
+# Stop
 docker compose down
 ```
 
 ---
 
-## Servisler
+## Services
 
-| Servis    | Port | Görev                        |
-|-----------|------|------------------------------|
-| API       | 8000 | FastAPI backend              |
-| Frontend  | 3000 | React + Vite web arayüzü     |
-| Redis     | 6379 | Celery mesaj kuyruğu         |
-| ZAP       | 8080 | OWASP ZAP güvenlik tarayıcı  |
-| Worker    | —    | Celery async görev işleyici  |
-
----
-
-## Ortam Değişkenleri
-
-```bash
-cp secrets.env.example .env
-```
-
-| Değişken                   | Açıklama                                      |
-|----------------------------|-----------------------------------------------|
-| `JWT_SECRET_KEY`           | JWT imzalama anahtarı (zorunlu)               |
-| `ADMIN_DEFAULT_PASSWORD`   | İlk admin şifresi (zorunlu, SEED_ADMIN=true)  |
-| `ADMIN_EMAIL`              | Admin e-posta adresi                          |
-| `DATABASE_URL`             | PostgreSQL bağlantı URL'i                     |
-| `REDIS_URL`                | Redis bağlantı URL'i                          |
-| `OLLAMA_API_KEY`           | LLM API anahtarı                              |
-| `ZAP_API_KEY`              | OWASP ZAP API anahtarı                        |
-| `STRIPE_ENABLED`           | `true` ile Stripe billing aktif edilir        |
-| `STRIPE_API_KEY`           | Stripe gizli anahtarı                         |
-| `STRIPE_WEBHOOK_SECRET`    | Stripe webhook imza anahtarı                  |
-| `ALLOWED_ORIGINS`          | Production CORS origin listesi (zorunlu)      |
-| `APP_ENV`                  | `development` / `production` / `test`         |
+| Service  | Port | Description                   |
+|----------|------|-------------------------------|
+| API      | 8000 | FastAPI backend               |
+| Frontend | 3000 | React + Vite web UI           |
+| Redis    | 6379 | Celery message broker         |
+| ZAP      | 8080 | OWASP ZAP security scanner    |
+| Worker   | —    | Celery async task processor   |
 
 ---
 
-## Yerel Geliştirme
+## Environment Variables
 
-**Backend (FastAPI)**
+| Variable                 | Required | Description                                         |
+|--------------------------|----------|-----------------------------------------------------|
+| `JWT_SECRET_KEY`         | ✅        | Secret key for JWT signing                          |
+| `ADMIN_DEFAULT_PASSWORD` | ✅        | Initial admin password (when `SEED_ADMIN=true`)     |
+| `ADMIN_EMAIL`            |          | Admin email address (default: `admin@neomnix.io`)  |
+| `DATABASE_URL`           |          | PostgreSQL connection URL                           |
+| `REDIS_URL`              |          | Redis connection URL                                |
+| `OLLAMA_API_KEY`         |          | LLM API key for AI commands                        |
+| `ZAP_API_KEY`            |          | OWASP ZAP API key                                   |
+| `STRIPE_ENABLED`         |          | Set `true` to enable billing                        |
+| `STRIPE_API_KEY`         |          | Stripe secret key                                   |
+| `STRIPE_WEBHOOK_SECRET`  |          | Stripe webhook signing secret                       |
+| `ALLOWED_ORIGINS`        | ✅ prod   | Comma-separated CORS origins (required in prod)     |
+| `APP_ENV`                |          | `development` / `production` / `test`               |
+| `SEED_ADMIN`             |          | `true` to auto-create default admin on startup      |
+
+---
+
+## API Reference
+
+### Authentication
+
+| Method | Endpoint                | Auth         | Description                  |
+|--------|-------------------------|--------------|------------------------------|
+| POST   | `/auth/login`           | Public       | Obtain JWT token             |
+| POST   | `/auth/register`        | Admin        | Create a new user            |
+| GET    | `/auth/me`              | Authenticated| Get current user info        |
+| POST   | `/auth/change-password` | Authenticated| Update password              |
+
+### Scanning
+
+| Method | Endpoint          | Auth            | Description                          |
+|--------|-------------------|-----------------|--------------------------------------|
+| POST   | `/scan`           | Admin / Analyst | Start a scan (`quick`/`deep`/`full`) |
+| GET    | `/scan/{job_id}`  | Authenticated   | Get scan status and results          |
+| GET    | `/scans`          | Viewer+         | List scan history (paginated)        |
+| POST   | `/scan/pcap`      | Admin / Analyst | Upload and analyze a PCAP file       |
+| POST   | `/command`        | Authenticated   | Execute a natural language AI command|
+
+### Reports
+
+| Method | Endpoint                              | Auth          | Description                      |
+|--------|---------------------------------------|---------------|----------------------------------|
+| GET    | `/reports/pdf/{job_id}/{framework}`   | Authenticated | Download PDF compliance report   |
+| GET    | `/stats`                              | Authenticated | Dashboard aggregated statistics  |
+
+### Gap Analysis
+
+| Method | Endpoint                    | Auth          | Description                         |
+|--------|-----------------------------|---------------|-------------------------------------|
+| POST   | `/api/gap/analyze`          | Authenticated | Start gap analysis (async)          |
+| GET    | `/api/gap/results/{task_id}`| Authenticated | Poll gap analysis result            |
+| GET    | `/api/gap/report/{org_id}`  | Authenticated | Retrieve full gap report            |
+
+### Admin & System
+
+| Method | Endpoint         | Auth    | Description                    |
+|--------|------------------|---------|--------------------------------|
+| GET    | `/audit/logs`    | Admin   | View audit trail               |
+| GET    | `/billing/status`| Public  | Stripe billing configuration   |
+| POST   | `/billing/webhook`| Stripe | Handle Stripe webhook event    |
+| GET    | `/health`        | Public  | Health check                   |
+
+---
+
+## Supported Compliance Frameworks
+
+| Framework   | Full Name                                            | Region |
+|-------------|------------------------------------------------------|--------|
+| HIPAA-2026  | Health Insurance Portability and Accountability Act  | US     |
+| WA-MHMDA    | Washington My Health My Data Act                     | US-WA  |
+| NIST-800-53 | NIST Special Publication 800-53 Security Controls    | US Fed |
+| SOC2        | Service Organization Control 2                       | Global |
+| CCM-4.0     | Cloud Security Alliance Cloud Controls Matrix        | Global |
+| SEC-2023    | SEC Cybersecurity Disclosure Rules (2023)            | US     |
+
+---
+
+## Local Development
+
+**Backend**
 ```bash
+cd backend
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 uvicorn src.api.main:app --reload --port 8000
 ```
 
-**Frontend (React + Vite)**
+**Frontend**
 ```bash
 cd frontend
 npm install
@@ -119,76 +200,40 @@ npm run dev
 
 **Celery Worker**
 ```bash
+cd backend
 celery -A src.worker.tasks worker --loglevel=info
 ```
 
 ---
 
-## API Endpointleri
-
-| Method | Endpoint                              | Yetki              | Açıklama                              |
-|--------|---------------------------------------|--------------------|---------------------------------------|
-| POST   | `/auth/login`                         | Herkese açık       | JWT token al                          |
-| POST   | `/auth/register`                      | Admin              | Yeni kullanıcı oluştur                |
-| GET    | `/auth/me`                            | Giriş yapmış       | Mevcut kullanıcı bilgisi              |
-| POST   | `/auth/change-password`               | Giriş yapmış       | Şifre güncelle                        |
-| POST   | `/scan`                               | Admin / Analyst    | Tarama başlat (quick/deep/full)       |
-| GET    | `/scan/{job_id}`                      | Giriş yapmış       | Tarama durumu ve sonucu               |
-| GET    | `/scans`                              | Viewer+            | Tarama geçmişi (sayfalı)              |
-| POST   | `/scan/pcap`                          | Admin / Analyst    | PCAP dosyası yükle ve analiz et       |
-| POST   | `/command`                            | Giriş yapmış       | Doğal dil AI komutu çalıştır          |
-| GET    | `/reports/pdf/{job_id}/{framework}`   | Giriş yapmış       | PDF rapor indir                       |
-| POST   | `/api/gap/analyze`                    | Giriş yapmış       | Gap analizi başlat                    |
-| GET    | `/api/gap/results/{task_id}`          | Giriş yapmış       | Gap analizi sonucu                    |
-| GET    | `/api/gap/report/{org_id}`            | Giriş yapmış       | Tam gap raporu                        |
-| GET    | `/stats`                              | Giriş yapmış       | Dashboard istatistikleri              |
-| GET    | `/audit/logs`                         | Admin              | Audit log kayıtları                   |
-| GET    | `/billing/status`                     | Herkese açık       | Stripe billing durumu                 |
-| POST   | `/billing/webhook`                    | Stripe imzalı      | Stripe webhook işle                   |
-| GET    | `/health`                             | Herkese açık       | Sistem sağlık kontrolü                |
-
----
-
-## Uyumluluk Çerçeveleri
-
-| Framework    | Kapsam                                              |
-|--------------|-----------------------------------------------------|
-| HIPAA-2026   | Sağlık verisi gizliliği ve güvenliği (ABD)          |
-| WA-MHMDA     | Washington eyaleti mental health veri yasası        |
-| NIST-800-53  | Federal güvenlik kontrol standardı / hibe uyumu     |
-| SOC2         | Servis organizasyonu güvenlik denetimi              |
-| CCM-4.0      | Cloud Controls Matrix (CSA)                         |
-| SEC-2023     | SEC siber güvenlik ifşaat kuralları                 |
-
----
-
-## Testler
+## Testing
 
 ```bash
-# Tüm testleri çalıştır
 cd backend
+
+# Run all tests
 pytest
 
-# Coverage raporu
+# With coverage report
 pytest --cov=src --cov-report=html
 ```
 
-Test dosyaları: auth, crossmap, compliance agent mapping, production readiness, PDF export, billing flag, artifact serialization, LLM disabled mode, E2E (Playwright).
+Test coverage includes: JWT auth, cross-mapping engine, compliance agent, PDF export, billing flag, artifact serialization, LLM disabled mode, production readiness, and E2E flows.
 
 ---
 
-## Admin Erişimi
+## Default Admin Credentials
 
 ```
-E-posta: admin@neomnix.io  (veya ADMIN_EMAIL env değişkeni)
-Şifre:   ADMIN_DEFAULT_PASSWORD env değişkeni
+Email:    admin@neomnix.io   (or ADMIN_EMAIL env variable)
+Password: set via ADMIN_DEFAULT_PASSWORD
 ```
 
-İlk girişte şifre değiştirme zorunludur.
+> Password change is enforced on first login.
 
 ---
 
-## Veritabanı Sıfırlama
+## Database Reset
 
 ```bash
 docker compose down -v
@@ -199,9 +244,15 @@ docker compose up -d
 
 ## CI/CD
 
-Her `main` push'unda GitHub Actions çalışır:
-- Docker Compose syntax doğrulama
-- Dockerfile build kontrolü
+GitHub Actions runs on every push to `main`:
+- Docker Compose syntax validation
+- Dockerfile build verification
 - Test suite
 
-Durum: https://github.com/Thundernight1/neomnix/actions
+Pipeline status: [GitHub Actions](https://github.com/Thundernight1/neomnix/actions)
+
+---
+
+## License
+
+Proprietary. All rights reserved.
