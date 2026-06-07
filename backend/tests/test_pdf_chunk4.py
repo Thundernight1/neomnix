@@ -15,6 +15,7 @@ import os
 import re
 import sys
 from contextlib import contextmanager
+from typing import Optional
 from unittest.mock import patch
 
 import pytest
@@ -26,6 +27,7 @@ from src.utils.pdf_exporter import (
     PDFReportExporter,
     REPORT_TEMPLATE_NAME,
     PENALTY_TIER_LABELS,
+    _FONT_FAMILY,
     _statutory_framing_for_tier,
     font_family,
     ttf_loaded,
@@ -167,26 +169,29 @@ def test_ttf_search_paths_include_env_override(monkeypatch):
     assert paths[0] == "/tmp/my-custom-font.ttf"
 
 
-def test_ttf_loader_uses_loaded_ttf_when_available(monkeypatch, tmp_path):
-    """When a real TTF is on disk and the short-circuit is off, the
-    loader registers it and reports ttf_loaded()==True.
-
-    Uses a hand-rolled minimal TTF stub: fpdf2's add_font just needs a
-    path that exists and is readable; it opens the file itself to parse
-    the font tables. We point the loader at a small .ttf that actually
-    exists on the test machine (the system has DejaVuSans.ttf; if not,
-    this test gracefully skips).
-    """
-    # Find any real TTF on the system.
-    real_ttf = None
+def _find_dejavu_path() -> Optional[str]:
+    """Return the first real DejaVu Sans path found on this system, or
+    None. Centralized so the real-TTF tests can call it consistently."""
     for d in [
         "/usr/local/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/opt/homebrew/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     ]:
         if os.path.isfile(d):
-            real_ttf = d
-            break
+            return d
+    return None
+
+
+def test_ttf_loader_uses_loaded_ttf_when_available(monkeypatch, tmp_path):
+    """When a real TTF is on disk and the short-circuit is off, the
+    loader registers it and reports ttf_loaded()==True.
+
+    The test environment may or may not ship a TTF. On the CI runner
+    (`fonts-dejavu` installed) the loader finds the system path
+    even when `NEOMNIX_TTF_FONT_PATH` is unset. We force the test
+    to use a known-good path so it is deterministic across systems.
+    """
+    real_ttf = _find_dejavu_path()
     if not real_ttf:
         pytest.skip("No DejaVu Sans TTF found on this system; skipping real-load test")
 
@@ -196,6 +201,8 @@ def test_ttf_loader_uses_loaded_ttf_when_available(monkeypatch, tmp_path):
     })
     monkeypatch.setenv("APP_ENV", "development")
     monkeypatch.delenv("NEOMNIX_DISABLE_TTF", raising=False)
+    # Force the loader to use exactly this path (bypassing the
+    # system search) so the test is deterministic.
     monkeypatch.setenv("NEOMNIX_TTF_FONT_PATH", real_ttf)
 
     fake = _CapturingFPDF()
@@ -207,16 +214,24 @@ def test_ttf_loader_uses_loaded_ttf_when_available(monkeypatch, tmp_path):
 
 
 def test_ttf_loader_handles_missing_path_gracefully(monkeypatch, capsys):
-    """When the configured TTF path does not exist, the loader logs a
-    fallback warning (to stdout) and stays on Helvetica. The report
-    generation must not crash."""
+    """When the configured TTF path does not exist AND no system font
+    is available, the loader logs a fallback warning (to stdout) and
+    stays on Helvetica. The report generation must not crash.
+
+    This test isolates from the system font search by stubbing
+    `_find_ttf` to return None unconditionally. Without that
+    isolation, a CI box with `fonts-dejavu` installed would find
+    DejaVu via the system path and the assertion would fail
+    spuriously.
+    """
     monkeypatch.setattr(pdf_exporter, "_TTF_STATE", {
         "attempted": False, "loaded": False, "regular": None,
         "bold": None, "italic": None, "bold_italic": None, "family": "Helvetica",
     })
     monkeypatch.setenv("APP_ENV", "development")
     monkeypatch.delenv("NEOMNIX_DISABLE_TTF", raising=False)
-    monkeypatch.setenv("NEOMNIX_TTF_FONT_PATH", "/nonexistent/path/to/font.ttf")
+    # Force the no-font-found branch regardless of what is on disk.
+    monkeypatch.setattr(pdf_exporter, "_find_ttf", lambda paths: None)
 
     fake = _CapturingFPDF()
     _ensure_ttf_loaded(fake)
@@ -318,16 +333,14 @@ def test_header_uses_single_title_slot_not_bilingual(exporter_with_fake):
 def test_header_renders_title_when_ttf_loaded(monkeypatch, tmp_path):
     """When the TTF is loaded and a real PDF is produced, the
     strict-English title is in the output regardless of which font
-    is in use. The TTF loader does not switch the title to Turkish."""
-    real_ttf = None
-    for d in [
-        "/usr/local/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/opt/homebrew/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-    ]:
-        if os.path.isfile(d):
-            real_ttf = d
-            break
+    is in use. The TTF loader does not switch the title to Turkish.
+
+    This test also exercises the renderer end-to-end with a real
+    TTF, which is the regression guard for the CI runner
+    `fonts-dejavu` environment: the renderer must not raise on
+    `set_font(family, "B"|"I", ...)` even when only the regular
+    TTF weight is available."""
+    real_ttf = _find_dejavu_path()
     if not real_ttf:
         pytest.skip("No DejaVu Sans TTF found on this system; skipping real-render test")
 
@@ -346,9 +359,19 @@ def test_header_renders_title_when_ttf_loaded(monkeypatch, tmp_path):
 
     out = e.generate_report(
         framework="HIPAA-2026",
-        findings=[],
-        status="compliant",
-        confidence=1.0,
+        findings=[{
+            "severity": "critical",
+            "description": "Unencrypted telnet",
+            "evidence": "23/tcp open",
+            "granular_breakdown": {
+                "technical_cause": "Telnet on the wire in cleartext.",
+                "regulatory_violation": ["HIPAA-2026-164.312(e)(1)"],
+                "business_grant_impact": "Grant termination risk per WA State Health IT Authority terms.",
+                "penalty_tier": "high",
+            },
+        }],
+        status="non_compliant",
+        confidence=0.95,
         job_id="job-ttf-english",
     )
     assert os.path.exists(out)
@@ -357,6 +380,88 @@ def test_header_renders_title_when_ttf_loaded(monkeypatch, tmp_path):
     # PDF is still 100% English. (The PDF body is binary, so we can't
     # grep the title out of it portably; we rely on the
     # REPORT_TEMPLATE_NAME check elsewhere.)
+
+
+def test_ttf_loader_registers_all_four_styles(monkeypatch, tmp_path):
+    """Regression test for the CI runner bug.
+
+    When a TTF is loaded, the loader must register ALL four
+    fpdf2 font styles — regular, bold, italic, bold-italic — so
+    that the renderer's set_font(family, "B"|"I"|"BI", ...) calls
+    do not raise "Undefined font: neomnix<B|I|BI>".
+
+    On a minimal Linux runner that ships only DejaVuSans.ttf (no
+    bold/italic variants), the loader falls back to registering
+    the regular TTF for all four styles. fpdf2 synthesizes the
+    missing weight or slant from the regular glyphs. The report
+    must render end-to-end without raising.
+    """
+    real_ttf = _find_dejavu_path()
+    if not real_ttf:
+        pytest.skip("No DejaVu Sans TTF found on this system; skipping style-registration test")
+
+    # Capture every fpdf2.add_font call.
+    add_font_calls: list = []
+
+    class _TrackingFPDF:
+        def __init__(self):
+            self._styles_seen: set = set()
+
+        def add_font(self, family: str, style: str, path: str):
+            add_font_calls.append((family, style, path))
+            self._styles_seen.add((family, style))
+
+        def set_auto_page_break(self, *a, **kw): pass
+        def add_page(self): pass
+        def set_fill_color(self, *a): pass
+        def set_draw_color(self, *a): pass
+        def set_line_width(self, *a): pass
+        def set_text_color(self, *a): pass
+        def rect(self, *a, **kw): pass
+        def set_font(self, family: str, style: str = "", size: int = 10):
+            if (family, style) not in self._styles_seen:
+                raise RuntimeError(
+                    f"set_font({family!r}, {style!r}, {size!r}) called before "
+                    f"add_font for style {style!r}; this is the CI failure mode"
+                )
+        def set_y(self, *a): pass
+        def set_x(self, *a): pass
+        def set_xy(self, *a): pass
+        def get_x(self): return 0
+        def get_y(self): return 0
+        def line(self, *a, **kw): pass
+        def ln(self, *a): pass
+        def cell(self, *a, **kw): pass
+        def multi_cell(self, *a, **kw): pass
+        def page_no(self): return 1
+        def output(self, *a, **kw):
+            return "/tmp/_test_ttf_loader_registers_all_four_styles.pdf"
+
+    monkeypatch.setattr(pdf_exporter, "_TTF_STATE", {
+        "attempted": False, "loaded": False, "regular": None,
+        "bold": None, "italic": None, "bold_italic": None, "family": "Helvetica",
+    })
+    monkeypatch.setenv("APP_ENV", "development")
+    monkeypatch.delenv("NEOMNIX_DISABLE_TTF", raising=False)
+    monkeypatch.setenv("NEOMNIX_TTF_FONT_PATH", real_ttf)
+
+    pdf = _TrackingFPDF()
+    _ensure_ttf_loaded(pdf)
+
+    # Verify the loader registered all four fpdf2 styles for the
+    # Neomnix family.
+    registered_styles = {(f, s) for f, s, _ in add_font_calls}
+    assert (_FONT_FAMILY, "")  in registered_styles, "regular style must be registered"
+    assert (_FONT_FAMILY, "B") in registered_styles, "bold style must be registered (CI runner regression)"
+    assert (_FONT_FAMILY, "I") in registered_styles, "italic style must be registered (CI runner regression)"
+    assert (_FONT_FAMILY, "BI") in registered_styles, "bold-italic style must be registered (CI runner regression)"
+
+    # Now exercise the renderer with each style and assert no
+    # set_font() raises. This is the actual CI failure path.
+    pdf.set_font(_FONT_FAMILY, "",  10)
+    pdf.set_font(_FONT_FAMILY, "B", 10)
+    pdf.set_font(_FONT_FAMILY, "I", 10)
+    pdf.set_font(_FONT_FAMILY, "BI", 10)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

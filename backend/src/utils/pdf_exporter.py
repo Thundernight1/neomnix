@@ -165,22 +165,33 @@ def _ensure_ttf_loaded(pdf: FPDF) -> None:
         return
 
     try:
-        pdf.add_font(_FONT_FAMILY, "",  regular_path)
+        # Register the regular weight.
+        pdf.add_font(_FONT_FAMILY, "", regular_path)
         _TTF_STATE["regular"] = regular_path
         _TTF_STATE["family"] = _FONT_FAMILY
 
-        # Bold / italic / bold-italic are optional. If we cannot
-        # find a bold TTF, fpdf2 will synthesize bold from the
-        # regular weight when style="B" is requested, so this is
-        # not a fatal failure.
+        # Register the remaining three styles (B, I, BI) so that
+        # later pdf.set_font(family, "B"|"I"|"BI", ...) calls do not
+        # raise "Undefined font: neomnix<B|I|BI>".
+        #
+        # We prefer dedicated TTF files when available (better
+        # typography) but fall back to the regular TTF for any
+        # missing variant. fpdf2 will synthesize the missing weight
+        # or slant from the regular glyphs, which is visually
+        # imperfect but functionally correct — the report will not
+        # crash. This fallback is what makes the loader safe on
+        # minimal Linux CI runners that ship only DejaVuSans.ttf
+        # without the bold/italic variants.
         bold_path = _find_ttf(_ttf_bold_paths())
-        if bold_path:
-            pdf.add_font(_FONT_FAMILY, "B", bold_path)
-            _TTF_STATE["bold"] = bold_path
+        pdf.add_font(_FONT_FAMILY, "B",  bold_path or regular_path)
+        _TTF_STATE["bold"] = bold_path  # may be None
 
-        # Italic and bold-italic are best-effort; we don't search
-        # for them in this chunk to keep the loader small. fpdf2
-        # will fall back to regular when style="I" is requested.
+        pdf.add_font(_FONT_FAMILY, "I",  regular_path)
+        _TTF_STATE["italic"] = None  # always synthesized from regular
+
+        pdf.add_font(_FONT_FAMILY, "BI", regular_path)
+        _TTF_STATE["bold_italic"] = None  # always synthesized from regular
+
         _TTF_STATE["loaded"] = True
     except Exception as exc:  # noqa: BLE001
         # Don't crash the report if a malformed TTF is installed.
