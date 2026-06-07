@@ -30,3 +30,6 @@ frontend/.tmp/
 
 backend/data/
 frontend/.tmp/
+
+**/.DS_Store
+**/.DS_Store?
