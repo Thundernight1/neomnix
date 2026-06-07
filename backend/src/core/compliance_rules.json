@@ -2,7 +2,7 @@
   "metadata": {
     "version": "2.0.0",
     "last_updated": "2026-03-10",
-    "frameworks": ["HIPAA-2026", "WA-MHMDA", "NIST-800-53", "SOC2", "CCM-4.0", "SEC-2023"],
+    "frameworks": ["HIPAA-2026", "WA-MHMDA"],
     "description": "Cross-framework compliance mapping rules for Neomnix GRC. Maps technical findings from Nmap, OWASP ZAP, and SharkTap passive analysis to regulatory controls."
   },
 
@@ -236,8 +236,7 @@
       "source": ["nmap"],
       "controls": [
         "HIPAA-2026-164.312(e)(1)",
-        "SOC2-CC6.1",
-        "CCM-4.0-IVS-07"
+        "WA-MHMDA-RCW-19.373.030"
       ],
       "description": "Service protected by TCP wrapper but still exposed externally. May permit unauthorized connection attempts."
     },

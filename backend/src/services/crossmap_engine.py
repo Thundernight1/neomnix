@@ -1,12 +1,17 @@
 """
 Cross-mapping engine — integrated with SQLAlchemy.
 
+Scope (post Chunk 2 — healthcare-only refactor):
+  - Supports only HIPAA-2026 and WA-MHMDA (RCW 19.373.030).
+  - SOC2, NIST-800-53, FedRAMP, PCI-DSS, CCM-4.0, SEC-2023 are out of
+    scope; no N×N cross-framework matrix is computed for them.
+
 Core algorithms (cosine similarity, keyword matching, overlap scoring) are
 implemented with TF-IDF vectorization and Jaccard set similarity.
 
 Features:
   - SQLAlchemy I/O replacing in-memory JSON lists
-  - Framework overlap matrix computation via SQL
+  - Healthcare-only framework overlap matrix computation via SQL
   - Vulnerability-to-control semantic search
   - Batch control mapping with database persistence
 """
@@ -225,12 +230,12 @@ def compute_framework_overlap(db: Session, framework_a: str, framework_b: str) -
 
 def get_framework_matrix(db: Session, frameworks: Optional[List[str]] = None) -> Dict[str, Dict[str, int]]:
     """
-    Return the full N×N overlap matrix.
+    Return the N×N overlap matrix for the healthcare frameworks.
 
-    Defaults to the four supported frameworks if none are provided.
+    Defaults to HIPAA-2026 and WA-MHMDA only.
     """
     if frameworks is None:
-        frameworks = ["soc2", "hipaa", "nist", "mhmda"]
+        frameworks = ["hipaa", "mhmda"]
 
     matrix: Dict[str, Dict[str, int]] = {}
     for a in frameworks:
@@ -252,10 +257,11 @@ def compute_all_control_mappings(
     across all requested frameworks.
 
     If *force_recompute* is False and mappings already exist, this is a no-op.
+    Defaults to HIPAA-2026 and WA-MHMDA only (no multi-framework N×N).
     Returns the number of mappings created.
     """
     if frameworks is None:
-        frameworks = ["soc2", "hipaa", "nist", "mhmda"]
+        frameworks = ["hipaa", "mhmda"]
 
     # Check if mappings already exist
     if not force_recompute:

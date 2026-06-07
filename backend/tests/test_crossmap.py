@@ -48,7 +48,11 @@ def test_db():
 
 @pytest.fixture
 def seeded_db(test_db):
-    """Seed the test database with sample controls and citations."""
+    """Seed the test database with sample controls and citations.
+
+    Post Chunk 2: only healthcare frameworks (hipaa, mhmda) are present.
+    SOC2, NIST, and other out-of-scope frameworks are no longer seeded.
+    """
     # Add sample controls
     controls = [
         UnifiedControl(
@@ -70,24 +74,6 @@ def seeded_db(test_db):
             category="encryption"
         ),
         UnifiedControl(
-            id="SOC2-001",
-            title="Logical Access",
-            description="Logical access controls restrict access to system resources based on the principle of least privilege.",
-            priority_level="high",
-            overlap_score=80,
-            required_evidence=["logs"],
-            category="access_control"
-        ),
-        UnifiedControl(
-            id="NIST-001",
-            title="AC-2 Account Management",
-            description="Identify system accounts, assign account managers, and establish conditions for group and role membership.",
-            priority_level="medium",
-            overlap_score=75,
-            required_evidence=["policies"],
-            category="access_control"
-        ),
-        UnifiedControl(
             id="MHMDA-001",
             title="Data Confidentiality",
             description="Ensure confidentiality of sensitive health information through appropriate safeguards.",
@@ -97,29 +83,25 @@ def seeded_db(test_db):
             category="confidentiality"
         ),
     ]
-    
+
     for ctrl in controls:
         test_db.add(ctrl)
-    
+
     test_db.commit()
-    
-    # Add citations to establish framework presence
+
+    # Add citations to establish framework presence (hipaa + mhmda only).
     citations = [
         ControlCitation(control_id="HIPAA-001", framework="hipaa", citation="45 CFR 164.312(a)(2)"),
         ControlCitation(control_id="HIPAA-002", framework="hipaa", citation="45 CFR 164.312(a)(2)(i)"),
-        ControlCitation(control_id="SOC2-001", framework="soc2", citation="CC6.1"),
-        ControlCitation(control_id="SOC2-001", framework="hipaa", citation="45 CFR 164.312(a)"),
-        ControlCitation(control_id="NIST-001", framework="nist", citation="NIST 800-53 AC-2"),
-        ControlCitation(control_id="NIST-001", framework="hipaa", citation="45 CFR 164.308"),
-        ControlCitation(control_id="MHMDA-001", framework="mhmda", citation="WA-HB 1194"),
+        ControlCitation(control_id="MHMDA-001", framework="mhmda", citation="RCW 19.373.030"),
         ControlCitation(control_id="MHMDA-001", framework="hipaa", citation="45 CFR 164.312"),
     ]
-    
+
     for cit in citations:
         test_db.add(cit)
-    
+
     test_db.commit()
-    
+
     return test_db
 
 
@@ -246,14 +228,14 @@ def test_overlap_score_clamped():
 def test_get_framework_matrix_default_frameworks(seeded_db):
     """Test framework matrix computation with default frameworks."""
     matrix = get_framework_matrix(seeded_db)
-    
+
     # Check structure
     assert isinstance(matrix, dict), "Matrix should be a dictionary"
-    assert len(matrix) == 4, "Should have 4 frameworks (soc2, hipaa, nist, mhmda)"
-    
-    expected_frameworks = {"soc2", "hipaa", "nist", "mhmda"}
+    assert len(matrix) == 2, "Should have 2 frameworks (hipaa, mhmda)"
+
+    expected_frameworks = {"hipaa", "mhmda"}
     assert set(matrix.keys()) == expected_frameworks, "Should contain expected frameworks"
-    
+
     # Diagonal should be 100 (framework with itself)
     for fw in expected_frameworks:
         assert matrix[fw][fw] == 100, f"{fw} overlap with itself should be 100"
@@ -261,31 +243,31 @@ def test_get_framework_matrix_default_frameworks(seeded_db):
 
 def test_get_framework_matrix_custom_frameworks(seeded_db):
     """Test framework matrix computation with custom framework list."""
-    custom_frameworks = ["hipaa", "soc2"]
+    custom_frameworks = ["hipaa", "mhmda"]
     matrix = get_framework_matrix(seeded_db, frameworks=custom_frameworks)
-    
+
     assert len(matrix) == 2, "Should have 2 frameworks"
-    assert set(matrix.keys()) == {"hipaa", "soc2"}
+    assert set(matrix.keys()) == {"hipaa", "mhmda"}
     assert matrix["hipaa"]["hipaa"] == 100
-    assert matrix["soc2"]["soc2"] == 100
+    assert matrix["mhmda"]["mhmda"] == 100
 
 
-def test_compute_framework_overlap_hipaa_nist(seeded_db):
-    """Test framework overlap: HIPAA to NIST."""
-    overlap = compute_framework_overlap(seeded_db, "hipaa", "nist")
+def test_compute_framework_overlap_hipaa_mhmda(seeded_db):
+    """Test framework overlap: HIPAA to WA-MHMDA."""
+    overlap = compute_framework_overlap(seeded_db, "hipaa", "mhmda")
     assert isinstance(overlap, int), "Overlap should be an integer"
     assert 0 <= overlap <= 100, "Overlap should be a percentage"
 
 
 def test_compute_framework_overlap_symmetry(seeded_db):
     """Test that framework overlap is NOT necessarily symmetric (directional)."""
-    hipaa_to_soc2 = compute_framework_overlap(seeded_db, "hipaa", "soc2")
-    soc2_to_hipaa = compute_framework_overlap(seeded_db, "soc2", "hipaa")
-    
-    assert isinstance(hipaa_to_soc2, int)
-    assert isinstance(soc2_to_hipaa, int)
-    assert 0 <= hipaa_to_soc2 <= 100
-    assert 0 <= soc2_to_hipaa <= 100
+    hipaa_to_mhmda = compute_framework_overlap(seeded_db, "hipaa", "mhmda")
+    mhmda_to_hipaa = compute_framework_overlap(seeded_db, "mhmda", "hipaa")
+
+    assert isinstance(hipaa_to_mhmda, int)
+    assert isinstance(mhmda_to_hipaa, int)
+    assert 0 <= hipaa_to_mhmda <= 100
+    assert 0 <= mhmda_to_hipaa <= 100
 
 
 def test_get_framework_matrix_overlaps_reasonable(seeded_db):
@@ -305,9 +287,10 @@ def test_get_framework_matrix_overlaps_reasonable(seeded_db):
 # ║  TESTS: FRAMEWORKS ENDPOINT (GET /crossmap/frameworks)                     ║
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
-def test_frameworks_endpoint_returns_four_frameworks(seeded_db):
+def test_frameworks_endpoint_returns_two_frameworks(seeded_db):
     """
-    Integration test: verify GET /crossmap/frameworks returns the 4 frameworks.
+    Integration test: verify the seeded DB exposes exactly the 2 supported
+    healthcare frameworks (hipaa, mhmda).
     """
     from sqlalchemy import distinct
     frameworks = (
@@ -316,10 +299,10 @@ def test_frameworks_endpoint_returns_four_frameworks(seeded_db):
         .all()
     )
     frameworks_list = [f[0] for f in frameworks]
-    
-    expected = {"hipaa", "soc2", "nist", "mhmda"}
-    assert set(frameworks_list) == expected, f"Should have all 4 frameworks, got {frameworks_list}"
-    assert len(frameworks_list) == 4, "Should have exactly 4 frameworks"
+
+    expected = {"hipaa", "mhmda"}
+    assert set(frameworks_list) == expected, f"Should have exactly the 2 supported frameworks, got {frameworks_list}"
+    assert len(frameworks_list) == 2, "Should have exactly 2 frameworks"
 
 
 # ╔════════════════════════════════════════════════════════════════════════════╗
@@ -328,25 +311,26 @@ def test_frameworks_endpoint_returns_four_frameworks(seeded_db):
 
 def test_matrix_endpoint_returns_valid_matrix(seeded_db):
     """
-    Integration test: verify POST /crossmap/matrix returns a valid overlap matrix.
+    Integration test: verify the matrix endpoint returns a valid 2-framework
+    overlap matrix (hipaa, mhmda).
     """
-    matrix = get_framework_matrix(seeded_db, frameworks=["hipaa", "soc2", "nist", "mhmda"])
-    
+    matrix = get_framework_matrix(seeded_db, frameworks=["hipaa", "mhmda"])
+
     # Validate structure
     assert isinstance(matrix, dict)
-    assert len(matrix) == 4
-    
+    assert len(matrix) == 2
+
     # Validate each row is a dict with all frameworks
     for fw_a, row in matrix.items():
         assert isinstance(row, dict)
-        assert len(row) == 4
-        for fw_b in ["hipaa", "soc2", "nist", "mhmda"]:
+        assert len(row) == 2
+        for fw_b in ["hipaa", "mhmda"]:
             assert fw_b in row
             assert isinstance(row[fw_b], int)
             assert 0 <= row[fw_b] <= 100
-    
+
     # Validate diagonal is 100
-    for fw in ["hipaa", "soc2", "nist", "mhmda"]:
+    for fw in ["hipaa", "mhmda"]:
         assert matrix[fw][fw] == 100, f"Diagonal {fw}->{fw} should be 100"
 
 
@@ -370,9 +354,9 @@ def test_overlap_score_zero_similarities():
 
 def test_get_framework_matrix_empty_database(test_db):
     """Test framework matrix with empty database."""
-    matrix = get_framework_matrix(test_db, frameworks=["hipaa", "soc2"])
-    
+    matrix = get_framework_matrix(test_db, frameworks=["hipaa", "mhmda"])
+
     # With empty database, diagonal should be 100 (self-overlap, no controls = 0/0 case)
     # The implementation returns 100 for self-overlap regardless
     assert matrix["hipaa"]["hipaa"] == 100, "Self-overlap should be 100"
-    assert matrix["soc2"]["soc2"] == 100, "Self-overlap should be 100"
+    assert matrix["mhmda"]["mhmda"] == 100, "Self-overlap should be 100"

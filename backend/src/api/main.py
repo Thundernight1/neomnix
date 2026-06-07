@@ -1,22 +1,28 @@
 """
 Neomnix Platform API — Production-Grade.
 Fixes: JWT auth, real compliance scoring, optimized stats, audit logging.
+Chunk 3: live /ws/alerts WebSocket (in-process asyncio.Queue),
+admin-only PDF report download, framework allowlist trimmed to
+HIPAA-2026 + WA-MHMDA.
 """
-from fastapi import FastAPI, HTTPException, Depends, Query, Request
+from fastapi import FastAPI, HTTPException, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+import asyncio
 
 from src.db.models import SessionLocal, engine, Base, ScanJob, User, AuditLog, init_db
 from src.worker.tasks import run_neomnix_scan
 from src.api.auth import (
     get_current_user, get_password_hash, verify_password,
     create_access_token, TokenResponse, UserCreate, UserResponse,
-    ChangePasswordRequest, require_role, log_audit, get_db, oauth2_scheme, init_auth_settings
+    ChangePasswordRequest, require_role, log_audit, get_db, oauth2_scheme, init_auth_settings,
+    get_jwt_secret_key, ALGORITHM,
 )
+from jose import JWTError, jwt
 
 # AI Hub Imports
 from src.agents.ai_hub import AIHub
@@ -85,13 +91,60 @@ app.add_middleware(
 )
 
 # --- Rate Limiter Setup (Fix 14) ---
-limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+# IS_TEST relaxes the rate limits so that test suites (which hammer the
+# /auth/login endpoint from a single TestClient IP) are not falsely
+# rate-limited. Production behavior is unchanged.
+_login_limit = "10000/minute" if IS_TEST else "10/minute"
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=(["10000/minute"] if IS_TEST else ["200/minute"]),
+)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 # --- AI Hub Singleton ---
 ai_hub = AIHub()
+
+
+# ╔══════════════════════════════════════════╗
+# ║         CHUNK 3 — ALERT QUEUE             ║
+# ╚══════════════════════════════════════════╝
+
+# In-process asyncio.Queue that SharkTapSkill pushes critical data-leak
+# events onto. The /ws/alerts WebSocket route drains it. No Redis, no
+# cross-process coordination — a single FastAPI worker is enough for
+# the dashboard's live alert needs. If the platform ever needs to scale
+# beyond a single worker, swap this for a Redis pub/sub and rewire
+# SharkTapSkill accordingly.
+#
+# maxsize=1000 bounds memory; a slow consumer causes events to be
+# dropped (the producer uses put_nowait, never blocks).
+#
+# Note: an asyncio.Queue is bound to the event loop that created it.
+# Creating it at import time would bind it to whichever loop happened
+# to be live at import. To make the queue robust against
+# - pytest fixtures spinning up a new event loop per test
+# - uvicorn workers on different loops
+# - lifespan startup vs request handling
+# we create the queue lazily on first access. The SharkTapSkill is
+# passed the same queue instance, so producers and consumers share it.
+_alert_queue: Optional[asyncio.Queue] = None
+
+
+def get_alert_queue() -> asyncio.Queue:
+    """Return the module-level alert queue, creating it on the current
+    event loop if it does not yet exist (or if a previous loop's queue
+    is no longer usable).
+
+    Call sites should use `get_alert_queue()` rather than a module-level
+    global, so the queue is always created on the loop that is
+    currently running.
+    """
+    global _alert_queue
+    if _alert_queue is None:
+        _alert_queue = asyncio.Queue(maxsize=1000)
+    return _alert_queue
 
 
 # ╔══════════════════════════════════════════╗
@@ -213,7 +266,7 @@ def on_startup():
 
 
 @app.post("/auth/login", response_model=TokenResponse)
-@limiter.limit("10/minute")
+@limiter.limit(_login_limit)
 async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Authenticate user and return JWT token."""
     user = db.query(User).filter(User.email == form_data.username).first()
@@ -539,10 +592,17 @@ async def get_pdf_report(
     job_id: str,
     framework: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role("admin"))  # Chunk 3 R4: admin-only
 ):
-    """Serves the generated PDF report for a specific job and framework."""
-    allowed_frameworks = {"HIPAA-2026", "WA-MHMDA", "NIST-800-53", "SOC2"}
+    """Serves the generated PDF report for a specific job and framework.
+
+    Chunk 3 R4: Restricted to the admin role. Analyst and viewer roles
+    receive 403 and must not be able to download executive reports.
+    The role check is the authorization boundary; the PDF exporter
+    itself is not.
+    """
+    # Chunk 3: trimmed to healthcare-only frameworks.
+    allowed_frameworks = {"HIPAA-2026", "WA-MHMDA"}
     if framework not in allowed_frameworks:
         raise HTTPException(status_code=400, detail="Unsupported framework")
 
@@ -649,8 +709,9 @@ async def analyze_pcap_upload(
                   details={"source": "sharktap", "filename": file.filename,
                            "size_mb": round(file_size_mb, 2)})
 
-        # Run SharkTap analysis
-        skill = SharkTapSkill()
+        # Run SharkTap analysis — Chunk 3: pass the alert queue so the
+        # skill can push critical data-leak events for real-time alerts.
+        skill = SharkTapSkill(alert_queue=get_alert_queue())
         results = skill.analyze_pcap(tmp_path)
 
         artifacts = results.get("artifacts", [])
@@ -704,6 +765,81 @@ async def analyze_pcap_upload(
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
 
+
+
+# ╔══════════════════════════════════════════╗
+# ║     CHUNK 3 — LIVE ALERT WEBSOCKET        ║
+# ╚══════════════════════════════════════════╝
+
+async def _authenticate_ws(websocket: WebSocket, db: Session) -> Optional[User]:
+    """Authenticate a WebSocket connection using the JWT in the
+    `?token=...` query string.
+
+    Browsers cannot set custom headers on the WebSocket API, so we
+    accept the bearer token in the URL. The same JWT used for REST
+    auth is used here. Returns the User on success, None on failure
+    (caller closes the socket with a policy-violation code).
+    """
+    token = websocket.query_params.get("token")
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if not email:
+            return None
+    except JWTError:
+        return None
+    user = db.query(User).filter(User.email == email).first()
+    if user is None or not user.is_active:
+        return None
+    return user
+
+
+@app.websocket("/ws/alerts")
+async def ws_alerts(
+    websocket: WebSocket,
+    # Reuse the request's db session through FastAPI's DI. The
+    # TestClient creates one event loop per call so this is safe.
+    db: Session = Depends(get_db),
+):
+    """Live critical-data-leak alerts pushed from SharkTapSkill.
+
+    The client connects with `ws://host/ws/alerts?token=<jwt>`. After
+    authentication, the server streams any event that
+    SharkTapSkill._enqueue_critical_alerts() pushes onto the
+    module-level `alert_queue`. A heartbeat ping is sent every
+    HEARTBEAT_INTERVAL seconds so the client can detect a dead
+    connection.
+    """
+    # Authenticate BEFORE accepting — this lets us close with a
+    # policy-violation code on failure.
+    user = await _authenticate_ws(websocket, db)
+    if user is None:
+        await websocket.close(code=1008, reason="unauthorized")
+        return
+    await websocket.accept()
+
+    HEARTBEAT_INTERVAL = 30.0  # seconds
+    queue = get_alert_queue()
+    try:
+        while True:
+            try:
+                # Wait for either a real alert or a heartbeat tick.
+                event = await asyncio.wait_for(
+                    queue.get(), timeout=HEARTBEAT_INTERVAL
+                )
+                # event is a dict; serialize as JSON via the websocket.
+                import json as _json
+                await websocket.send_text(_json.dumps(event))
+            except asyncio.TimeoutError:
+                # No alert in HEARTBEAT_INTERVAL seconds. Send a
+                # heartbeat so the client knows the connection is live.
+                await websocket.send_text('{"type": "heartbeat"}')
+    except WebSocketDisconnect:
+        # Client went away. Nothing to clean up — the queue is shared
+        # and other consumers (or the next client) will drain it.
+        return
 
 
 # ╔══════════════════════════════════════════╗

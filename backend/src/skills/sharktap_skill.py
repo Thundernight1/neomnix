@@ -6,21 +6,29 @@ detected network threats into VulnerabilityArtifacts that flow through the
 standard Neomnix compliance pipeline.
 
 Workflow:
-  Analyst (on-site) → SharkTap → capture.pcap → Upload to API →
-  SharkTapSkill.analyze_pcap() → VulnerabilityArtifacts →
-  ComplianceAgent → HIPAA/SOC2/NIST/CCM/SEC cross-mapped PDF report
+  Analyst (on-site) -> SharkTap -> capture.pcap -> Upload to API ->
+  SharkTapSkill.analyze_pcap() -> VulnerabilityArtifacts ->
+  ComplianceAgent -> HIPAA/WA-MHMDA cross-mapped PDF report
 
 This skill uses tshark (Wireshark CLI) for PCAP analysis. tshark must be
 installed in the Docker image (wireshark-common package).
+
+Chunk 3: When constructed with an `alert_queue`, the skill enqueues a
+structured "Critical Data Leak" event for every critical-severity threat
+it detects. The alert_queue is drained by the /ws/alerts WebSocket
+endpoint in src/api/main.py, which pushes events to the dashboard in
+real time. The queue is optional: when None, the skill behaves exactly
+as it did before Chunk 3.
 """
 
+import asyncio
 import subprocess  # nosec B404
 import json
 import os
 import shutil
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from src.skills.base import BaseSkill
 from src.models.contracts import VulnerabilityArtifact
@@ -38,15 +46,31 @@ THREAT_SEVERITY = {
     "BROADCAST_STORM":            "low",
 }
 
+# Threat types that qualify as a "Critical Data Leak" for live alerting.
+# These are the events the /ws/alerts endpoint surfaces to the dashboard.
+# Add to this set with care: every entry must be a real, immediate
+# exposure of sensitive healthcare data, not a recon signal.
+CRITICAL_DATA_LEAK_TYPES = {
+    "UNENCRYPTED_DATABASE",
+    "DNS_TUNNELING_SUSPECTED",
+    "CLEARTEXT_TELNET_SESSION",
+}
+
 
 class SharkTapSkill(BaseSkill):
     """
     Analyzes PCAP files from a SharkTap passive network tap.
     Converts network threats to VulnerabilityArtifacts for compliance mapping.
+
+    Chunk 3: if `alert_queue` is provided, critical data-leak threats
+    (UNENCRYPTED_DATABASE, DNS_TUNNELING_SUSPECTED, CLEARTEXT_TELNET_SESSION)
+    are pushed onto the queue as structured events for real-time alerting.
+    The queue consumer is the /ws/alerts WebSocket in src/api/main.py.
     """
 
-    def __init__(self):
+    def __init__(self, alert_queue: Optional[asyncio.Queue] = None):
         super().__init__(name="sharktap")
+        self.alert_queue = alert_queue
         self._check_tshark()
 
     def _check_tshark(self):
@@ -105,6 +129,10 @@ class SharkTapSkill(BaseSkill):
         # Threat detection → this is the compliance-relevant output
         raw_threats = self._detect_threats(pcap_file, intensity)
         results["threats"] = raw_threats
+
+        # Chunk 3: enqueue critical data-leak events for real-time WebSocket
+        # alerting. No-op if alert_queue is None.
+        self._enqueue_critical_alerts(raw_threats, pcap_file)
 
         # Convert threats to VulnerabilityArtifacts for the compliance pipeline
         results["artifacts"] = self._threats_to_artifacts(raw_threats, pcap_file)
@@ -318,6 +346,53 @@ class SharkTapSkill(BaseSkill):
         return threats
 
     # ─── Convert threats → VulnerabilityArtifacts ────────────────────────────
+    def _enqueue_critical_alerts(
+        self,
+        threats: List[Dict],
+        pcap_file: str,
+    ) -> None:
+        """Push critical data-leak threats onto the alert queue.
+
+        No-op if `self.alert_queue` is None. The queue is drained by the
+        /ws/alerts WebSocket endpoint in src/api/main.py.
+
+        Each queued event has the shape:
+            {
+                "type":       "critical_data_leak",
+                "severity":   "critical",
+                "threat":     <threat type, e.g. "UNENCRYPTED_DATABASE">,
+                "source":     <threat source field, if present>,
+                "detail":     <threat detail string>,
+                "pcap":       <basename of the pcap file>,
+                "timestamp":  <ISO-8601 timestamp>,
+            }
+        """
+        if self.alert_queue is None:
+            return
+        for threat in threats:
+            threat_type = threat.get("type", "")
+            if threat_type not in CRITICAL_DATA_LEAK_TYPES:
+                continue
+            event = {
+                "type": "critical_data_leak",
+                "severity": "critical",
+                "threat": threat_type,
+                "source": threat.get("source"),
+                "detail": threat.get("detail", ""),
+                "pcap": os.path.basename(pcap_file),
+                "timestamp": datetime.now().isoformat(),
+            }
+            # Use put_nowait — we do not want to block the analysis
+            # pipeline waiting on a slow consumer. If the queue is full
+            # the alert is dropped, which is preferable to backpressure
+            # on a synchronous PCAP analysis path.
+            try:
+                self.alert_queue.put_nowait(event)
+            except asyncio.QueueFull:
+                print(
+                    f"⚠️  [SharkTap] alert_queue is full; dropping event for {threat_type}"
+                )
+
     def _threats_to_artifacts(
         self,
         threats: List[Dict],

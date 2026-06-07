@@ -51,7 +51,7 @@ class GapReport:
         }
 
 
-SUPPORTED_FRAMEWORKS = ["soc2", "hipaa", "nist", "mhmda"]
+SUPPORTED_FRAMEWORKS = ["hipaa", "mhmda"]
 
 
 def analyze_gaps(db: Session, completed_ucl_ids: List[str], target_frameworks=None) -> GapReport:

@@ -13,7 +13,7 @@ def test_extract_frameworks_includes_wa_when_mixed_controls():
         determination="non_compliant",
         confidence_score=0.9,
         mapped_controls=[
-            "SOC2-CC6.1",
+            "HIPAA-2026-164.312(a)(1)",
             "WA-MHMDA-RCW-19.373.010",
         ],
         unmapped_findings=[],
@@ -21,8 +21,25 @@ def test_extract_frameworks_includes_wa_when_mixed_controls():
     )
 
     frameworks = agent._extract_frameworks(verdict)
-    assert "SOC2" in frameworks
+    assert "HIPAA-2026" in frameworks
     assert "WA-MHMDA" in frameworks
+    assert "SOC2" not in frameworks
+    assert "NIST-800-53" not in frameworks
+
+
+def test_extract_frameworks_default_set_is_healthcare_only():
+    """When no mapped controls are present, the default framework set is HIPAA-2026 + WA-MHMDA only."""
+    agent = ComplianceAgent()
+    verdict = ComplianceVerdict(
+        determination="compliant",
+        confidence_score=1.0,
+        mapped_controls=[],
+        unmapped_findings=[],
+        reasoning="test",
+    )
+
+    frameworks = agent._extract_frameworks(verdict)
+    assert frameworks == {"HIPAA-2026", "WA-MHMDA"}
 
 
 def test_mapping_is_case_insensitive_for_known_trigger():

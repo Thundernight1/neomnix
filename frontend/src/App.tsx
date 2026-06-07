@@ -10,7 +10,9 @@ import NotFound from './components/NotFound';
 import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import GapAnalysis from './components/GapAnalysis';
-import Crossmap from './components/Crossmap';
+// Chunk 5: Crossmap is no longer routed. The component still exists
+// as a stub at components/Crossmap.tsx so any pre-refactor internal
+// link resolves to a clean explanation page rather than a 404.
 import { useTheme } from './lib/useTheme';
 
 function AppInner() {

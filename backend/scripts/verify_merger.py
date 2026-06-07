@@ -93,11 +93,12 @@ def test_framework_overlap():
     db = SessionLocal()
     try:
         matrix = get_framework_matrix(db)
-        assert "soc2" in matrix
-        assert "hipaa" in matrix
-        assert matrix["soc2"]["soc2"] == 100
-        assert 0 <= matrix["soc2"]["hipaa"] <= 100
-        print(f"  PASS: Matrix computed — soc2↔hipaa = {matrix['soc2']['hipaa']}%")
+        # Post Chunk 2: only the two healthcare frameworks are supported.
+        assert "hipaa" in matrix, f"hipaa missing from matrix keys: {list(matrix.keys())}"
+        assert "mhmda" in matrix, f"mhmda missing from matrix keys: {list(matrix.keys())}"
+        assert matrix["hipaa"]["hipaa"] == 100
+        assert 0 <= matrix["hipaa"]["mhmda"] <= 100
+        print(f"  PASS: Matrix computed — hipaa↔mhmda = {matrix['hipaa']['mhmda']}%")
     finally:
         db.close()
 

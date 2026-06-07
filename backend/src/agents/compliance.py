@@ -153,7 +153,7 @@ The automated Neomnix system performed a zero-trust security scan.
             elif control.startswith("NIST"): frameworks.add("NIST-800-53")
             elif control.startswith("SOC2"): frameworks.add("SOC2")
         if not frameworks:
-            frameworks = {"HIPAA-2026", "WA-MHMDA", "NIST-800-53", "SOC2"}
+            frameworks = {"HIPAA-2026", "WA-MHMDA"}
         return frameworks
 
     def _generate_pdf_reports(self, verdict: ComplianceVerdict, artifacts: List[VulnerabilityArtifact], job_id: str):
