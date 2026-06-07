@@ -2,14 +2,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Dashboard from './components/Dashboard';
-import CommandCenter from './components/CommandCenter';
 import LoginScreen from './components/LoginScreen';
 import ScanDetail from './components/ScanDetail';
 import AuditLog from './components/AuditLog';
 import NotFound from './components/NotFound';
 import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
 import ErrorBoundary from './components/ErrorBoundary';
-import GapAnalysis from './components/GapAnalysis';
 // Chunk 5: Crossmap is no longer routed. The component still exists
 // as a stub at components/Crossmap.tsx so any pre-refactor internal
 // link resolves to a clean explanation page rather than a 404.
@@ -43,7 +41,7 @@ function AppInner() {
 
           <Route
             path="/"
-            element={isAuthenticated() ? <CommandCenter /> : <Navigate to="/login" replace />}
+            element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/dashboard"

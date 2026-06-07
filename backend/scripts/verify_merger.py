@@ -28,15 +28,6 @@ from services.crossmap_engine import (
     get_controls_by_framework,
 )
 
-# Import migration functions directly (scripts/ is not a package)
-import importlib.util
-_migrate_path = os.path.join(os.path.dirname(__file__), "migrate_ucl_data.py")
-_spec = importlib.util.spec_from_file_location("migrate_ucl_data", _migrate_path)
-_migrate_module = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_migrate_module)
-migrate_unified_controls = _migrate_module.migrate_unified_controls
-migrate_control_citations = _migrate_module.migrate_control_citations
-
 
 def section(name: str):
     print(f"\n{'='*60}")
@@ -68,22 +59,6 @@ def test_database_schema():
         assert cc_count == 0
         assert cm_count == 0
         print("  PASS: Schema initialized, all new tables empty")
-    finally:
-        db.close()
-
-
-def test_ucl_migration():
-    section("3. UCL Data Migration")
-    db = SessionLocal()
-    try:
-        controls = migrate_unified_controls(db)
-        assert len(controls) == 50, f"Expected 50 controls, got {len(controls)}"
-
-        migrate_control_citations(db, controls)
-        cc_count = db.query(ControlCitation).count()
-        assert cc_count > 0, "Citations should exist"
-
-        print(f"  PASS: Migrated {len(controls)} controls, {cc_count} citations")
     finally:
         db.close()
 
@@ -186,7 +161,6 @@ def main():
 
     test_core_algorithms()
     test_database_schema()
-    test_ucl_migration()
     test_framework_overlap()
     test_control_mapping()
     test_vulnerability_search()
@@ -199,9 +173,8 @@ def main():
     print("\nThe merged platform is ready for end-user delivery.")
     print("Next steps:")
     print("  1. Run 'alembic upgrade head' to apply migrations")
-    print("  2. Run 'python scripts/migrate_ucl_data.py' to seed UCL")
-    print("  3. Run 'uvicorn src.api.main:app --reload' to boot FastAPI")
-    print("  4. Visit /docs to test new /crossmap/* endpoints")
+    print("  2. Run 'uvicorn src.api.main:app --reload' to boot FastAPI")
+    print("  3. Visit /docs to test new /crossmap/* endpoints")
 
 
 if __name__ == "__main__":

@@ -61,10 +61,22 @@ def auth_header(client):
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_command_llm_disabled_returns_503_when_no_api_key(monkeypatch, client, auth_header):
+def test_command_unknown_intent_dispatches_to_default_agent(monkeypatch, client, auth_header):
+    """Post-DCE: there is no LLM agent. Commands that don't match any
+    intent_map keyword dispatch to the default agent (scanner). This
+    replaces the pre-DCE test that expected a 503 when no LLM API
+    key was configured — that test was asserting behaviour for a
+    code path that no longer exists.
+
+    The scanner is registered in main.py's startup, so a plain
+    "hello" command (no scan/analyze keywords) falls through to
+    the scanner's default-execute path and returns 200.
+    """
     monkeypatch.delenv("OLLAMA_API_KEY", raising=False)
     r = client.post("/command", json={"command": "hello", "context": {}}, headers=auth_header)
-    assert r.status_code == 503
+    # The scanner agent's default target is "localhost"; a 200 with
+    # some JSON body is the expected new behaviour.
+    assert r.status_code == 200
 
 
 def test_command_non_llm_intent_still_works_without_api_key(monkeypatch, client, auth_header):

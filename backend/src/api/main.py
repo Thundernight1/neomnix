@@ -28,8 +28,6 @@ from jose import JWTError, jwt
 from src.agents.ai_hub import AIHub
 from src.agents.dispatch import ScannerDispatcher
 from src.agents.cross_mapping_analyzer import CrossMappingAnalyzer
-from src.agents.llm_agent import LLMAgent
-from src.agents.cloud_scanner import CloudScannerAgent
 from src.skills.sharktap_skill import SharkTapSkill
 
 import uuid, os, shutil, tempfile
@@ -217,8 +215,6 @@ def on_startup():
     # Register AI Agents
     ai_hub.register_agent("scanner", ScannerDispatcher())
     ai_hub.register_agent("cross_mapper", CrossMappingAnalyzer())
-    ai_hub.register_agent("llm", LLMAgent())
-    ai_hub.register_agent("cloud_scanner", CloudScannerAgent())
 
     # --- Seed admin user if none exists ---
     seed_admin_default = not IS_PROD and not IS_TEST

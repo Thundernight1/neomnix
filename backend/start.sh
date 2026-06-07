@@ -32,14 +32,6 @@ else
     echo "[startup] ⚠️  No alembic.ini found — skipping migrations"
 fi
 
-# Seed compliance framework data
-echo "[startup] Seeding compliance data..."
-if [ -f "scripts/migrate_ucl_data.py" ]; then
-    python scripts/migrate_ucl_data.py && echo "[startup] ✅ Compliance data seeded" || echo "[startup] ⚠️  Compliance data already present"
-else
-    echo "[startup] ⚠️  No UCL migration script found"
-fi
-
 # Start FastAPI with production settings
 echo "[startup] Starting Neomnix API Server..."
 echo "========================================"
