@@ -109,7 +109,7 @@ class ComplianceAgent:
         filename = f"{framework}_Report_{job_id}.md"
         filepath = os.path.join(directory, filename)
         
-        relevant_controls = [c for c in verdict.mapped_controls if framework in c or (framework == "NIST-800-53" and "NIST" in c)]
+        relevant_controls = [c for c in verdict.mapped_controls if framework in c]
         
         md_content = f"""# {framework} Compliance Report
 **Date:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
@@ -150,8 +150,6 @@ The automated Neomnix system performed a zero-trust security scan.
         for control in verdict.mapped_controls:
             if control.startswith("HIPAA"): frameworks.add("HIPAA-2026")
             elif control.startswith("WA-MHMDA"): frameworks.add("WA-MHMDA")
-            elif control.startswith("NIST"): frameworks.add("NIST-800-53")
-            elif control.startswith("SOC2"): frameworks.add("SOC2")
         if not frameworks:
             frameworks = {"HIPAA-2026", "WA-MHMDA"}
         return frameworks

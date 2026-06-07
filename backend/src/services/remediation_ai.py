@@ -21,7 +21,7 @@ def _build_prompt(ucl_id, title, description, frameworks, citations):
     citation_lines = "\n".join(
         f"  {fw.upper()}: {', '.join(cits)}" for fw, cits in citations.items()
     )
-    return f"""You are a senior GRC consultant specializing in HIPAA, SOC2, NIST 800-53 and Washington MHMDA.
+    return f"""You are a senior GRC consultant specializing in HIPAA and Washington MHMDA.
 
 Gap detected:
   Control ID: {ucl_id}

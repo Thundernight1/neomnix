@@ -3,8 +3,6 @@ Cross-mapping engine — integrated with SQLAlchemy.
 
 Scope (post Chunk 2 — healthcare-only refactor):
   - Supports only HIPAA-2026 and WA-MHMDA (RCW 19.373.030).
-  - SOC2, NIST-800-53, FedRAMP, PCI-DSS, CCM-4.0, SEC-2023 are out of
-    scope; no N×N cross-framework matrix is computed for them.
 
 Core algorithms (cosine similarity, keyword matching, overlap scoring) are
 implemented with TF-IDF vectorization and Jaccard set similarity.

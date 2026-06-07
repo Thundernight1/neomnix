@@ -4,8 +4,8 @@ CrossMappingAnalyzer — Neomnix healthcare refactor.
 Scope (post Chunk 2 / 3):
   - Maps detected network/technical vulnerabilities to HIPAA-2026 and
     WA-MHMDA (RCW 19.373.030) only.
-  - N×N multi-framework matching has been removed. SOC2, NIST-800-53,
-    CCM-4.0, FedRAMP, PCI-DSS, and SEC-2023 are out of scope.
+  - N×N multi-framework matching has been removed. Only HIPAA-2026 and
+    WA-MHMDA are in scope.
   - Every finding carries a `risk_type` field with the two business-
     language risk labels that drive the grant-funded healthcare UI:
       * "HIPAA Ceza Riski"                  — HIPAA penalty risk
@@ -208,10 +208,7 @@ class CrossMappingAnalyzer:
 
             if match_found:
                 # Filter the rule's controls to the in-scope healthcare
-                # frameworks only. The rules JSON may still contain legacy
-                # SOC2/NIST/CCM/SEC control IDs in `controls` for backwards
-                # compatibility, but the analyzer output must not surface
-                # any out-of-scope framework strings downstream.
+                # frameworks only.
                 in_scope_controls = [
                     c for c in details["controls"]
                     if c.startswith("HIPAA-") or c.startswith("WA-MHMDA")
