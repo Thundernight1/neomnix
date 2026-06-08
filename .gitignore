@@ -33,3 +33,7 @@ frontend/.tmp/
 
 **/.DS_Store
 **/.DS_Store?
+
+# Test-only secrets file. .env pattern is matched by .env.* above, but the
+# test- prefix falls outside that pattern, so this is a defensive extra entry.
+test-secrets.env
