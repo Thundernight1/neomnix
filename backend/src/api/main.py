@@ -5,7 +5,7 @@ Chunk 3: live /ws/alerts WebSocket (in-process asyncio.Queue),
 admin-only PDF report download, framework allowlist trimmed to
 HIPAA-2026 + WA-MHMDA.
 """
-from fastapi import FastAPI, HTTPException, Depends, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Depends, Request, WebSocket, WebSocketDisconnect, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -19,7 +19,7 @@ from src.api.auth import (
     get_current_user, get_password_hash, verify_password,
     create_access_token, TokenResponse, UserCreate, UserResponse,
     ChangePasswordRequest, require_role, log_audit, get_db, init_auth_settings,
-    get_jwt_secret_key, ALGORITHM,
+    get_jwt_secret_key, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from jose import JWTError, jwt
 
@@ -213,7 +213,7 @@ def on_startup():
 
 @app.post("/auth/login", response_model=TokenResponse)
 @limiter.limit(_login_limit)
-async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(request: Request, response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Authenticate user and return JWT token."""
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -228,12 +228,27 @@ async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends
     token = create_access_token(data={"sub": user.email, "role": user.role})
     log_audit(db, user.tenant_id, user.email, "login")
 
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=IS_PROD,
+        samesite="lax",
+        path="/",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+
     return TokenResponse(
         access_token=token,
         role=user.role,
         email=user.email,
         force_password_change=bool(user.force_password_change)
     )
+
+@app.post("/auth/logout")
+async def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Logged out successfully"}
 
 @app.post("/auth/register", response_model=UserResponse)
 async def register_user(
@@ -493,14 +508,9 @@ async def get_pdf_report(
 
 async def _authenticate_ws(websocket: WebSocket, db: Session) -> Optional[User]:
     """Authenticate a WebSocket connection using the JWT in the
-    `?token=...` query string.
-
-    Browsers cannot set custom headers on the WebSocket API, so we
-    accept the bearer token in the URL. The same JWT used for REST
-    auth is used here. Returns the User on success, None on failure
-    (caller closes the socket with a policy-violation code).
+    HttpOnly cookie or as a fallback the `?token=...` query string.
     """
-    token = websocket.query_params.get("token")
+    token = websocket.cookies.get("access_token") or websocket.query_params.get("token")
     if not token:
         return None
     try:

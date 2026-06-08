@@ -85,7 +85,8 @@ class SharkTapSkill(BaseSkill):
         """
         if not os.path.exists(target):
             return {"error": f"PCAP file not found: {target}", "artifacts": []}
-        return self.analyze_pcap(target, intensity)
+        abs_target = os.path.abspath(target)
+        return self.analyze_pcap(abs_target, intensity)
 
     def analyze_pcap(self, pcap_file: str, intensity: int = 1) -> Dict[str, Any]:
         """

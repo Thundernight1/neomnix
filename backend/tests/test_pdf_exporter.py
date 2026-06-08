@@ -11,6 +11,7 @@ def test_pdf_exporter_generates_pdf_without_unicode_bullet_error(tmp_path):
     exporter.output_dir = str(tmp_path)
     os.makedirs(exporter.output_dir, exist_ok=True)
 
+    os.environ["APP_ENV"] = "test"
     pdf_path = exporter.generate_report(
         framework="HIPAA-2026",
         findings=[

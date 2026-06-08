@@ -12,6 +12,26 @@ os.environ.setdefault("SEED_ADMIN", "false")
 os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-please-change-32chars+")
 
 
+@pytest.fixture(autouse=True)
+def bypass_rate_limits_globally():
+    """Disable rate limiting globally for all tests."""
+    from src.api.main import limiter
+    limiter.enabled = False
+
+@pytest.fixture(autouse=True)
+def reset_ttf_state():
+    """Clear PDF exporter TTF state before each test so they don't pollute each other."""
+    from src.utils.pdf_exporter import _TTF_STATE
+    _TTF_STATE["attempted"] = False
+    _TTF_STATE["loaded"] = False
+    _TTF_STATE["family"] = "Helvetica"
+    _TTF_STATE["regular"] = None
+    _TTF_STATE["bold"] = None
+    _TTF_STATE["italic"] = None
+    _TTF_STATE["bold_italic"] = None
+    yield
+
+
 def pytest_configure(config):
     """Register custom markers"""
     config.addinivalue_line(

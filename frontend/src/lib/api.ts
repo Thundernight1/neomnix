@@ -20,6 +20,7 @@ export const api = {
     const response = await fetch(`${API_BASE}/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ target, scan_type: scanType }),
     });
     if (!response.ok) throw new Error('Scan failed to start');
@@ -30,6 +31,7 @@ export const api = {
     const response = await fetch(`${API_BASE}/command`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ command }),
     });
     if (!response.ok) throw new Error('Command failed');

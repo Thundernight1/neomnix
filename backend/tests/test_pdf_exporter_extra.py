@@ -146,6 +146,8 @@ def test_ensure_ttf_loaded_no_ttf_found(monkeypatch):
     monkeypatch.setenv("NEOMNIX_DISABLE_TTF", "")
     # Point at a nonexistent path.
     monkeypatch.setenv("NEOMNIX_TTF_FONT_PATH", "/nonexistent/DejaVuSans.ttf")
+    # Prevent fallback to actual system fonts in CI container
+    monkeypatch.setattr(pdf_exporter, "_ttf_search_paths", lambda: ["/nonexistent/DejaVuSans.ttf"])
 
     fake_pdf = MagicMock()
     _ensure_ttf_loaded(fake_pdf)

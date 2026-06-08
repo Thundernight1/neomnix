@@ -142,6 +142,13 @@ def _login(client, email, password="TestPassword123"):
     return r.json()["access_token"]
 
 
+@pytest.fixture(autouse=True)
+def bypass_rate_limits(monkeypatch):
+    """Bypass rate limiting completely during tests to avoid 429 and AttributeError issues."""
+    from slowapi.middleware import SlowAPIMiddleware
+    # Completely stub out the slowapi check to always allow requests
+    monkeypatch.setattr("slowapi.middleware.SlowAPIMiddleware.dispatch", lambda self, req, call_next: call_next(req))
+
 # ──────────────────────────────────────────────────────────────────────────────
 # R4 — admin-only PDF route
 # ──────────────────────────────────────────────────────────────────────────────

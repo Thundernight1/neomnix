@@ -26,7 +26,7 @@ export default function LoginScreen() {
 
   // Redirect away if already authenticated
   useEffect(() => {
-    if (localStorage.getItem('token')) {
+    if (localStorage.getItem('token') || localStorage.getItem('isAuthenticated')) {
       navigate('/', { replace: true });
     }
   }, [navigate]);
@@ -44,6 +44,7 @@ export default function LoginScreen() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        credentials: 'include',
         body: formData,
       });
 
@@ -53,7 +54,8 @@ export default function LoginScreen() {
       }
 
       const data = await res.json();
-      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.removeItem('token'); // Clear old token if present
 
       if (data.force_password_change) {
         localStorage.setItem('force_password_change', 'true');

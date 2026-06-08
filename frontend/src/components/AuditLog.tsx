@@ -47,14 +47,16 @@ export default function AuditLog() {
   const [actionFilter, setActionFilter] = useState<string>('all');
 
   const authHeaders = () => ({
-    Authorization: `Bearer ${localStorage.getItem('token')}`,
     'Content-Type': 'application/json',
   });
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_Base}/audit/logs?limit=500`, { headers: authHeaders() });
+      const res = await fetch(`${API_Base}/audit/logs?limit=500`, { 
+        headers: authHeaders(),
+        credentials: 'include'
+      });
       if (res.status === 401) { navigate('/login'); return; }
       if (res.status === 403) {
         toast.error('Access denied — Admin role required');

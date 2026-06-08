@@ -21,12 +21,12 @@ function AppInner() {
 
   useEffect(() => {
     const forceChange = localStorage.getItem('force_password_change');
-    if (forceChange === 'true' && localStorage.getItem('token')) {
+    if (forceChange === 'true' && (localStorage.getItem('token') || localStorage.getItem('isAuthenticated'))) {
       setShowPasswordModal(true);
     }
   }, []);
 
-  const isAuthenticated = () => !!localStorage.getItem('token');
+  const isAuthenticated = () => !!localStorage.getItem('isAuthenticated') || !!localStorage.getItem('token');
 
   // ProtectedRoute defined outside render to avoid re-creation on every render
   return (

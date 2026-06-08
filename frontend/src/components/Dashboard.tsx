@@ -37,9 +37,17 @@ const API_BASE = import.meta.env.VITE_API_URL || '/api';
  * the token is passed in the query string. See backend's
  * /ws/alerts dependency for the matching decode path.
  */
-function alertsWsUrl(token: string): string {
+function alertsWsUrl(): string {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${proto}//${window.location.host}/ws/alerts?token=${encodeURIComponent(token)}`;
+  // If API_BASE is an absolute URL
+  if (API_BASE.startsWith('http')) {
+    const url = new URL(API_BASE);
+    url.protocol = proto;
+    return `${url.href}/ws/alerts`;
+  }
+  // Otherwise, construct it relative to the current host
+  const base = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+  return `${proto}//${window.location.host}${base}/ws/alerts`;
 }
 
 /**
@@ -131,8 +139,8 @@ export default function Dashboard() {
   const [wsStatus, setWsStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    const authStatus = localStorage.getItem('token') || localStorage.getItem('isAuthenticated');
+    if (!authStatus) {
       navigate('/login', { replace: true });
       return;
     }
@@ -143,7 +151,7 @@ export default function Dashboard() {
     const connect = () => {
       if (cancelled) return;
       setWsStatus('connecting');
-      const ws = new WebSocket(alertsWsUrl(token));
+      const ws = new WebSocket(alertsWsUrl());
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -205,13 +213,13 @@ export default function Dashboard() {
   // Fetch the latest scans once on mount. Re-runs only if the user
   // navigates away and back.
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    const authStatus = localStorage.getItem('token') || localStorage.getItem('isAuthenticated');
+    if (!authStatus) return;
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch(`${API_BASE}/scans`, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'include',
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: ScanSummary[] = await res.json();

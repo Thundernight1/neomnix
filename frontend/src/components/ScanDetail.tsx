@@ -77,7 +77,7 @@ export default function ScanDetail() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
 
-  const getToken = () => localStorage.getItem('token');
+  const getToken = () => localStorage.getItem('token') || localStorage.getItem('isAuthenticated');
 
   const fetchScanDetails = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -86,7 +86,7 @@ export default function ScanDetail() {
       if (!token) { navigate('/login'); return; }
 
       const res = await fetch(`${API_Base}/scan/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
 
       if (res.status === 401) { navigate('/login'); return; }
@@ -125,7 +125,7 @@ export default function ScanDetail() {
     try {
       const token = getToken();
       const res = await fetch(`${API_Base}/reports/pdf/${id}/${framework}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
 
       if (!res.ok) {

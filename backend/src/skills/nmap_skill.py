@@ -14,6 +14,10 @@ class NmapSkill(BaseSkill):
         super().__init__(name="nmap")
         
     async def execute(self, target: str, intensity: int = 1) -> Dict[str, Any]:
+        import re
+        if not re.match(r"^[a-zA-Z0-9.\-\/]+$", target):
+            return {"error": "Invalid target format", "artifacts": []}
+            
         print(f"--- [Skill: Nmap] Initiating Scan on {target} (Intensity: {intensity}) ---")
         nm = nmap.PortScanner()
         

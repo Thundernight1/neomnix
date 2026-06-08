@@ -188,7 +188,9 @@ def test_get_current_user_invalid_signature_raises_401(secret_key, test_db_engin
         with pytest.raises(HTTPException) as exc_info:
             # Wrap in a coroutine to drive the async function.
             import asyncio
-            asyncio.run(get_current_user(token=bad_token, db=MagicMock()))
+            mock_request = MagicMock()
+            mock_request.cookies.get.return_value = bad_token
+            asyncio.run(get_current_user(request=mock_request, db=MagicMock()))
 
         assert exc_info.value.status_code == 401
         assert "Invalid authentication credentials" in exc_info.value.detail
@@ -217,7 +219,9 @@ def test_get_current_user_expired_token_raises_401(secret_key, test_db_engine):
         )
         with pytest.raises(HTTPException) as exc_info:
             import asyncio
-            asyncio.run(get_current_user(token=expired, db=MagicMock()))
+            mock_request = MagicMock()
+            mock_request.cookies.get.return_value = expired
+            asyncio.run(get_current_user(request=mock_request, db=MagicMock()))
         assert exc_info.value.status_code == 401
     finally:
         app.dependency_overrides.clear()
@@ -244,7 +248,9 @@ def test_get_current_user_missing_sub_claim_raises_401(secret_key, test_db_engin
         )
         with pytest.raises(HTTPException) as exc_info:
             import asyncio
-            asyncio.run(get_current_user(token=token_no_sub, db=MagicMock()))
+            mock_request = MagicMock()
+            mock_request.cookies.get.return_value = token_no_sub
+            asyncio.run(get_current_user(request=mock_request, db=MagicMock()))
         assert exc_info.value.status_code == 401
     finally:
         app.dependency_overrides.clear()
@@ -271,7 +277,9 @@ def test_get_current_user_not_in_db_raises_401(secret_key, test_db_engine):
         )
         with pytest.raises(HTTPException) as exc_info:
             import asyncio
-            asyncio.run(get_current_user(token=token, db=SessionLocal()))
+            mock_request = MagicMock()
+            mock_request.cookies.get.return_value = token
+            asyncio.run(get_current_user(request=mock_request, db=SessionLocal()))
         assert exc_info.value.status_code == 401
     finally:
         app.dependency_overrides.clear()
@@ -311,7 +319,9 @@ def test_get_current_user_inactive_user_raises_401(secret_key, test_db_engine, s
         )
         with pytest.raises(HTTPException) as exc_info:
             import asyncio
-            asyncio.run(get_current_user(token=token, db=SessionLocal()))
+            mock_request = MagicMock()
+            mock_request.cookies.get.return_value = token
+            asyncio.run(get_current_user(request=mock_request, db=SessionLocal()))
         assert exc_info.value.status_code == 401
     finally:
         app.dependency_overrides.clear()
@@ -336,7 +346,9 @@ def test_get_current_user_success(secret_key, test_db_engine, sample_user):
             algorithm=ALGORITHM,
         )
         import asyncio
-        user = asyncio.run(get_current_user(token=token, db=SessionLocal()))
+        mock_request = MagicMock()
+        mock_request.cookies.get.return_value = token
+        user = asyncio.run(get_current_user(request=mock_request, db=SessionLocal()))
         assert user is not None
         assert user.email == sample_user.email
         assert user.role == "analyst"

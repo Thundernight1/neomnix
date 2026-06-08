@@ -93,7 +93,7 @@ def get_db():
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    request: Request,
     db: Session = Depends(get_db)
 ) -> User:
     """Decode JWT and return authenticated user. Raises 401 on failure."""
@@ -102,6 +102,14 @@ async def get_current_user(
         detail="Invalid authentication credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    token = request.cookies.get("access_token")
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            
+    if not token:
+        raise credentials_exception
     try:
         payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM])
         email: str = payload.get("sub")
