@@ -5,21 +5,20 @@ Chunk 3: live /ws/alerts WebSocket (in-process asyncio.Queue),
 admin-only PDF report download, framework allowlist trimmed to
 HIPAA-2026 + WA-MHMDA.
 """
-from fastapi import FastAPI, HTTPException, Depends, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Depends, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 import asyncio
 
-from src.db.models import SessionLocal, engine, Base, ScanJob, User, AuditLog, init_db
-from src.worker.tasks import run_neomnix_scan
+from src.db.models import SessionLocal, ScanJob, User, AuditLog, init_db
 from src.api.auth import (
     get_current_user, get_password_hash, verify_password,
     create_access_token, TokenResponse, UserCreate, UserResponse,
-    ChangePasswordRequest, require_role, log_audit, get_db, oauth2_scheme, init_auth_settings,
+    ChangePasswordRequest, require_role, log_audit, get_db, init_auth_settings,
     get_jwt_secret_key, ALGORITHM,
 )
 from jose import JWTError, jwt
@@ -28,20 +27,16 @@ from jose import JWTError, jwt
 from src.agents.ai_hub import AIHub
 from src.agents.dispatch import ScannerDispatcher
 from src.agents.cross_mapping_analyzer import CrossMappingAnalyzer
-from src.skills.sharktap_skill import SharkTapSkill
 
-import uuid, os, shutil, tempfile
+import uuid, os
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-from datetime import timedelta
-from fastapi import UploadFile, File
+from typing import List, Optional
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from src.integrations.stripe_mcp import StripeMCPClient
 from src.api.gap import router as gap_router
 
 
@@ -149,19 +144,6 @@ def get_alert_queue() -> asyncio.Queue:
 # ║         REQUEST / RESPONSE MODELS        ║
 # ╚══════════════════════════════════════════╝
 
-class ScanRequest(BaseModel):
-    target: str
-    scan_type: str = "quick"  # quick, deep, full
-
-class CommandRequest(BaseModel):
-    command: str
-    context: Optional[Dict[str, Any]] = {}
-
-class ScanResponse(BaseModel):
-    job_id: str
-    status: str
-    target: str
-
 class ReportResponse(BaseModel):
     job_id: str
     status: str
@@ -170,38 +152,6 @@ class ReportResponse(BaseModel):
     compliance_verdict: Optional[str]
     compliance_score: Optional[float]
     details: Optional[dict]
-
-
-def _stripe_enabled() -> bool:
-    raw = os.getenv("STRIPE_ENABLED")
-    if raw is None:
-        return False
-    return raw.strip().lower() in {"1", "true", "yes", "y", "on"}
-
-
-@app.get("/billing/status")
-async def billing_status():
-    return {
-        "enabled": _stripe_enabled(),
-        "stripe_api_key_configured": bool(os.getenv("STRIPE_API_KEY")),
-        "stripe_webhook_secret_configured": bool(os.getenv("STRIPE_WEBHOOK_SECRET")),
-    }
-
-
-@app.post("/billing/webhook")
-async def stripe_webhook(request: Request):
-    if not _stripe_enabled():
-        raise HTTPException(status_code=404, detail="Billing disabled")
-
-    signature = request.headers.get("Stripe-Signature")
-    if not signature:
-        raise HTTPException(status_code=400, detail="Missing Stripe-Signature header")
-
-    body = await request.body()
-    result = StripeMCPClient.handle_webhook_event(body, signature)
-    if not result.get("success"):
-        raise HTTPException(status_code=400, detail=result.get("error") or "Invalid webhook")
-    return result
 
 
 # ╔══════════════════════════════════════════╗
@@ -350,125 +300,7 @@ async def change_password(
 
 
 # ╔══════════════════════════════════════════╗
-# ║        PROTECTED SCAN ENDPOINTS          ║
-# ╚══════════════════════════════════════════╝
-
-@app.post("/command")
-async def execute_ai_command(
-    request: CommandRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Execute a natural language command through the AI Hub."""
-    agent_name = ai_hub._determine_intent(request.command)
-    if agent_name == "llm" and not os.getenv("OLLAMA_API_KEY"):
-        raise HTTPException(status_code=503, detail="LLM is not configured.")
-
-    context = request.context or {}
-    context['db'] = db
-    context['user'] = current_user.email
-    context['tenant_id'] = current_user.tenant_id
-
-    result = await ai_hub.process_command(request.command, context)
-    log_audit(db, current_user.tenant_id, current_user.email, "ai_command", details={"command": request.command})
-    return result
-
-@app.post("/scan", response_model=ScanResponse)
-async def trigger_scan(
-    request: Request,
-    scan_request: ScanRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "analyst"))
-):
-    """Initiate a compliance scan. Requires admin or analyst role."""
-    job_id = str(uuid.uuid4())
-
-    new_job = ScanJob(
-        id=job_id,
-        tenant_id=current_user.tenant_id,
-        target=scan_request.target,
-        status="pending",
-        initiated_by=current_user.email
-    )
-    db.add(new_job)
-    db.commit()
-    db.refresh(new_job)
-
-    # Determine Intensity
-    intensity = {"quick": 1, "deep": 5, "full": 10}.get(scan_request.scan_type, 1)
-
-    # Dispatch Celery Worker
-    run_neomnix_scan.delay(job_id, scan_request.target, intensity)
-
-    log_audit(db, current_user.tenant_id, current_user.email, "scan_initiated", resource_id=job_id,
-              details={"target": scan_request.target, "scan_type": scan_request.scan_type})
-
-    return ScanResponse(job_id=job_id, status="pending", target=scan_request.target)
-
-@app.get("/scans", response_model=List[ReportResponse])
-async def list_scans(skip: int = 0, limit: int = 20, db: Session = Depends(get_db), current_user: User = Depends(require_role("viewer"))):
-    """List recent scans with pagination."""
-    jobs = db.query(ScanJob).filter(
-        ScanJob.tenant_id == current_user.tenant_id
-    ).order_by(ScanJob.created_at.desc()).offset(skip).limit(limit).all()
-    
-    results = []
-    for job in jobs:
-        verdict = None
-        if job.compliance_report:
-            verdict = job.compliance_report.get("determination")
-        
-        # Calculate score if findings exist
-        score = None
-        if job.findings:
-            score = _compute_compliance_score(job)
-
-        results.append({
-            "job_id": job.id,
-            "status": job.status,
-            "target": job.target,
-            "findings_count": len(job.findings) if job.findings else 0,
-            "compliance_verdict": verdict,
-            "details": job.compliance_report, # simplified
-            "compliance_score": score
-        })
-    return results
-
-@app.get("/scan/{job_id}", response_model=ReportResponse)
-def get_scan_status(
-    job_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Get scan status and results with real compliance score."""
-    job = db.query(ScanJob).filter(
-        ScanJob.id == job_id,
-        ScanJob.tenant_id == current_user.tenant_id
-    ).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Scan Job not found")
-
-    verdict = None
-    compliance_score = None
-
-    if job.compliance_report:
-        verdict = job.compliance_report.get("determination")
-        # --- FIX 3: Real compliance score computation ---
-        compliance_score = _compute_compliance_score(job)
-
-    return ReportResponse(
-        job_id=job.id,
-        status=job.status,
-        target=job.target,
-        findings_count=len(job.findings) if job.findings else 0,
-        compliance_verdict=verdict,
-        compliance_score=compliance_score,
-        details=job.compliance_report
-    )
-
-
-# ╔══════════════════════════════════════════╗
-# ║     COMPLIANCE SCORE COMPUTATION         ║
+# ║          DASHBOARD STATS (OPTIMIZED)     ║
 # ╚══════════════════════════════════════════╝
 
 def _compute_compliance_score(job: ScanJob) -> float:
@@ -655,116 +487,8 @@ async def get_pdf_report(
 
 
 # ╔══════════════════════════════════════════╗
-# ║    SHARKTAP PCAP ANALYSIS ENDPOINT       ║
-# ╚══════════════════════════════════════════╝
-
-@app.post("/scan/pcap")
-async def analyze_pcap_upload(
-    request: Request,
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin", "analyst"))
-):
-    """
-    Upload a PCAP file captured by SharkTap for compliance analysis.
-    Returns threat findings mapped to HIPAA/SOC2/NIST/CCM/SEC controls
-    and generates a PDF report.
-    """
-    # Validate file type
-    if not file.filename.endswith((".pcap", ".pcapng", ".cap")):
-        raise HTTPException(
-            status_code=422,
-            detail="File must be a PCAP file (.pcap, .pcapng, or .cap)"
-        )
-
-    # Save upload to temp file
-    suffix = os.path.splitext(file.filename)[1]
-    tmp_path = None
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix, prefix="sharktap_") as tmp:
-            shutil.copyfileobj(file.file, tmp)
-            tmp_path = tmp.name
-
-        file_size_mb = os.path.getsize(tmp_path) / (1024 * 1024)
-        if file_size_mb > 500:
-            raise HTTPException(status_code=413, detail="PCAP file too large (max 500 MB)")
-
-        # Create scan job
-        job_id = str(uuid.uuid4())
-        new_job = ScanJob(
-            id=job_id,
-            tenant_id=current_user.tenant_id,
-            target=f"pcap://{file.filename}",
-            status="running",
-            initiated_by=current_user.email
-        )
-        db.add(new_job)
-        db.commit()
-
-        log_audit(db, current_user.tenant_id, current_user.email, "scan_initiated", resource_id=job_id,
-                  details={"source": "sharktap", "filename": file.filename,
-                           "size_mb": round(file_size_mb, 2)})
-
-        # Run SharkTap analysis — Chunk 3: pass the alert queue so the
-        # skill can push critical data-leak events for real-time alerts.
-        skill = SharkTapSkill(alert_queue=get_alert_queue())
-        results = skill.analyze_pcap(tmp_path)
-
-        artifacts = results.get("artifacts", [])
-        threats   = results.get("threats", [])
-
-        # Feed artifacts through ComplianceAgent for cross-mapping + PDF
-        from src.agents.compliance import ComplianceAgent
-        from src.models.contracts import ScanContext, NeomnixState
-
-        compliance_agent = ComplianceAgent()
-        confidence = 0.95 if any(t.get("severity") == "HIGH" for t in threats) else 0.7
-
-        verdict = compliance_agent.evaluate(artifacts, confidence, job_id=job_id)
-
-        # Persist results
-        new_job.status             = "completed"
-        new_job.findings           = [a.model_dump() for a in artifacts]
-        new_job.compliance_report  = verdict.model_dump()
-        db.commit()
-
-        return {
-            "job_id":            job_id,
-            "status":            "completed",
-            "source":            "sharktap_pcap",
-            "filename":          file.filename,
-            "threats_detected":  len(threats),
-            "artifacts_count":   len(artifacts),
-            "compliance_verdict": verdict.determination,
-            "mapped_controls":   verdict.mapped_controls,
-            "unmapped_findings": verdict.unmapped_findings,
-            "analysis_summary": {
-                "total_packets":  results["summary"].get("total_packets"),
-                "dns_queries":    len(results["dns_queries"]),
-                "http_hosts":     len(results["http_hosts"]),
-                "top_threats":    [
-                    {"type": t["type"], "severity": t["severity"]}
-                    for t in threats
-                ],
-            }
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        if 'new_job' in dir() and new_job.id:
-            new_job.status   = "failed"
-            new_job.findings = [{"error": str(e)}]
-            db.commit()
-        raise HTTPException(status_code=500, detail=f"PCAP analysis failed: {str(e)}")
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            os.unlink(tmp_path)
-
-
-
-# ╔══════════════════════════════════════════╗
 # ║     CHUNK 3 — LIVE ALERT WEBSOCKET        ║
+# ╚══════════════════════════════════════════╝
 # ╚══════════════════════════════════════════╝
 
 async def _authenticate_ws(websocket: WebSocket, db: Session) -> Optional[User]:
@@ -850,20 +574,3 @@ app.include_router(gap_router)
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "version": "2.0.0"}
-
-@app.get("/audit/logs")
-async def get_audit_logs(
-    limit: int = Query(50, ge=1, le=500),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("admin"))
-):
-    """Admin-only: view audit trail."""
-    logs = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(limit).all()
-    return [{
-        "user": log.user_email,
-        "action": log.action,
-        "resource": log.resource_id,
-        "details": log.details,
-        "time": log.timestamp.isoformat() if log.timestamp else None,
-        "ip": log.ip_address
-    } for log in logs]

@@ -7,6 +7,7 @@ and the core cosine_similarity function from the cross-mapping engine.
 import pytest
 import sys
 import os
+import math
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -343,7 +344,7 @@ def test_cosine_similarity_case_insensitive():
     a = "Access Control"
     b = "access control"
     sim = cosine_similarity(a, b)
-    assert sim == 1.0, "Case should be ignored"
+    assert math.isclose(sim, 1.0, abs_tol=1e-9), f"Expected ~1.0, got {sim}"
 
 
 def test_overlap_score_zero_similarities():

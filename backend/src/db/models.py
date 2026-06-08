@@ -23,10 +23,8 @@ class Tenant(Base):
     name = Column(String, unique=True, nullable=False, index=True)
     slug = Column(String, unique=True, nullable=False, index=True)  # URL-friendly identifier
     description = Column(Text, nullable=True)
-    logo_url = Column(String, nullable=True)
     billing_email = Column(String, nullable=False)
     tier = Column(String, default="starter")  # starter, professional, enterprise
-    stripe_customer_id = Column(String, nullable=True, unique=True, index=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -35,29 +33,6 @@ class Tenant(Base):
     users = relationship("User", back_populates="tenant")
     scan_jobs = relationship("ScanJob", back_populates="tenant")
     audit_logs = relationship("AuditLog", back_populates="tenant")
-    subscriptions = relationship("Subscription", back_populates="tenant")
-
-
-class Subscription(Base):
-    """Billing subscription model for tenants."""
-    __tablename__ = "subscriptions"
-
-    id = Column(String, primary_key=True, index=True)  # UUID
-    tenant_id = Column(String, ForeignKey("tenants.id"), index=True, nullable=False)
-    stripe_subscription_id = Column(String, nullable=True, unique=True)
-    stripe_product_id = Column(String, nullable=True)
-    status = Column(String, default="inactive")  # active, past_due, canceled, trialing
-    tier = Column(String, default="starter")
-    price_per_month = Column(Float, nullable=True)
-    seats_limit = Column(Integer, default=5)
-    started_at = Column(DateTime, nullable=True)
-    ends_at = Column(DateTime, nullable=True)
-    trial_ends_at = Column(DateTime, nullable=True)
-    auto_renew = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    tenant = relationship("Tenant", back_populates="subscriptions")
 
 
 class User(Base):
@@ -86,7 +61,6 @@ class ScanJob(Base):
     target = Column(String, index=True)
     status = Column(String)  # pending, running, completed, failed
     created_at = Column(DateTime, default=datetime.utcnow)
-    completed_at = Column(DateTime, nullable=True)
     initiated_by = Column(String, nullable=True)  # user email for audit
 
     # Store results as JSON for flexibility
@@ -94,7 +68,6 @@ class ScanJob(Base):
     compliance_report = Column(JSON, nullable=True)
 
     # Metrics
-    final_intensity = Column(Integer)
     confidence_score = Column(Float)
 
     tenant = relationship("Tenant", back_populates="scan_jobs")

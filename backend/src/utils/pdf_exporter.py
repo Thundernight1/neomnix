@@ -382,14 +382,6 @@ class PDFReportExporter:
         if not self.platform_name or len(self.platform_name) < 3:
             self.platform_name = "Neomnix GRC"
 
-    def _font(self, style: str = "", size: int = 10) -> tuple:
-        """Return (family, style, size) for the active font.
-
-        When a TTF is loaded, the family is the registered name
-        ("Neomnix"). Otherwise, the family is the built-in Helvetica.
-        """
-        return (font_family(), style, size)
-
     def generate_report(self, framework: str, findings: list, status: str, confidence: float, job_id: str) -> str:
         """Generate the branded Healthcare Executive Audit Report."""
         pdf = FPDF()

@@ -74,8 +74,6 @@ def run_neomnix_scan(self, job_id: str, target: str, intensity: int = 1):
         
         # Update Job with Results
         job.status = "completed"
-        job.completed_at = datetime.utcnow()
-        job.final_intensity = final_state['context'].intensity
         job.confidence_score = final_state['confidence']
         
         # Serialize Artifacts

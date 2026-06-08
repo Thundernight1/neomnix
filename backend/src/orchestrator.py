@@ -3,7 +3,7 @@ from typing import TypedDict, Union, List, Literal
 from langgraph.graph import StateGraph, END # type: ignore
 from src.models.contracts import VulnerabilityArtifact, ScanContext, ComplianceVerdict, NeomnixState
 from src.agents.scanner import ScannerAgent
-from src.agents.compliance import ComplianceAgent, ComplianceGapError
+from src.agents.compliance import ComplianceAgent
 
 class NeomnixOrchestrator:
     """

@@ -11,8 +11,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
-from src.db.models import Base, SessionLocal, Tenant, User, Subscription, ScanJob, AuditLog
-from src.integrations.stripe_mcp import StripeMCPClient
+from src.db.models import Base, SessionLocal, Tenant, User, ScanJob, AuditLog
 from src.api.auth import get_password_hash
 
 
@@ -128,7 +127,6 @@ class TestMultiTenancy:
             status="completed",
             initiated_by=sample_admin_user.email,
             findings=[{"severity": "high", "type": "sql_injection"}],
-            final_intensity=5,
             confidence_score=0.95,
         )
         test_db.add(scan1)
@@ -177,84 +175,6 @@ class TestMultiTenancy:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STRIPE INTEGRATION TESTS
-# ═══════════════════════════════════════════════════════════════════════════════
-
-class TestStripeIntegration:
-    """Test Stripe MCP tools for billing"""
-
-    def test_tier_pricing_configuration(self):
-        """Verify tier pricing is correctly configured"""
-        from src.integrations.stripe_mcp import TIER_PRICING
-
-        assert "starter" in TIER_PRICING
-        assert "professional" in TIER_PRICING
-        assert "enterprise" in TIER_PRICING
-
-        assert TIER_PRICING["starter"]["price_per_month"] == 29.00
-        assert TIER_PRICING["professional"]["price_per_month"] == 99.00
-        assert TIER_PRICING["enterprise"]["price_per_month"] == 299.00
-
-        assert TIER_PRICING["starter"]["seats_limit"] == 5
-        assert TIER_PRICING["professional"]["seats_limit"] == 25
-        assert TIER_PRICING["enterprise"]["seats_limit"] == 999
-
-    def test_stripe_customer_creation_call(self):
-        """Test Stripe customer creation (mock validation)"""
-        # Note: Requires STRIPE_API_KEY set for real calls
-        import os
-        if not os.getenv("STRIPE_API_KEY"):
-            pytest.skip("STRIPE_API_KEY not set")
-
-        result = StripeMCPClient.create_customer(
-            email="test@example.com",
-            tenant_name="Test Tenant",
-            metadata={"tenant_id": "t123", "plan": "professional"}
-        )
-
-        # Should return success or proper error
-        assert "customer_id" in result or "error" in result
-        if "customer_id" in result:
-            assert result["success"] is True
-
-    def test_subscription_status_values(self):
-        """Verify valid subscription status values"""
-        from src.db.models import Subscription
-
-        valid_statuses = ["active", "past_due", "canceled", "trialing", "inactive"]
-
-        for status in valid_statuses:
-            sub = Subscription(
-                id=f"sub-{status}",
-                tenant_id="t123",
-                status=status,
-                tier="professional",
-            )
-            # Should not raise
-            assert sub.status == status
-
-    def test_subscription_tier_mapping(self, test_db, sample_tenant):
-        """Verify subscription tiers map correctly"""
-        sub = Subscription(
-            id="sub-001",
-            tenant_id=sample_tenant.id,
-            status="active",
-            tier="professional",
-            price_per_month=99.00,
-            seats_limit=25,
-            started_at=datetime.utcnow(),
-            ends_at=datetime.utcnow() + timedelta(days=30),
-        )
-        test_db.add(sub)
-        test_db.commit()
-
-        retrieved = test_db.query(Subscription).filter(Subscription.id == "sub-001").first()
-        assert retrieved.tier == "professional"
-        assert retrieved.price_per_month == 99.00
-        assert retrieved.seats_limit == 25
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
 # COMPLIANCE SCANNING TESTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -292,7 +212,6 @@ class TestComplianceScanning:
             status="completed",
             initiated_by=sample_admin_user.email,
             findings=findings,
-            final_intensity=10,
             confidence_score=0.92,
         )
         test_db.add(scan)
@@ -329,7 +248,6 @@ class TestComplianceScanning:
             initiated_by=sample_admin_user.email,
             compliance_report=compliance_report,
             findings=[],
-            final_intensity=8,
             confidence_score=0.88,
         )
         test_db.add(scan)
@@ -426,17 +344,6 @@ class TestProductionReadiness:
             return
         db_url = os.getenv("DATABASE_URL", "")
         assert "postgresql" in db_url or "postgres" in db_url, "DATABASE_URL must use PostgreSQL for production"
-
-    def test_stripe_keys_present(self):
-        """Verify Stripe keys are configured"""
-        stripe_key = os.getenv("STRIPE_API_KEY", "")
-        webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-
-        # Check for live keys (not test keys)
-        if stripe_key and stripe_key.startswith("sk_test_"):
-            print("⚠️  Using Stripe TEST key - use sk_live_ for production")
-        if webhook_secret and webhook_secret.startswith("whsec_test_"):
-            print("⚠️  Using Stripe TEST webhook secret - use whsec_ for production")
 
     def test_password_hash_strength(self):
         """Verify password hashing uses strong algorithm"""

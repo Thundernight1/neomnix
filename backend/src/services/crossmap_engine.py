@@ -22,7 +22,7 @@ from typing import Dict, List, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from src.db.models import UnifiedControl, ControlCitation, ControlMapping
+from src.db.models import UnifiedControl, ControlCitation
 
 
 # ╔════════════════════════════════════════════════════════════════════════════╗
@@ -46,149 +46,53 @@ def _tf(tokens: List[str]) -> Dict[str, float]:
 
 def cosine_similarity(a: str, b: str) -> float:
     """
-    TF-IDF cosine similarity between two text strings.
-    Returns 0.0–1.0.
+    Compute cosine similarity between two text strings.
     """
-    ta = _tf(_tokens(a))
-    tb = _tf(_tokens(b))
-    if not ta or not tb:
+    tokens_a = _tokens(a)
+    tokens_b = _tokens(b)
+    if not tokens_a or not tokens_b:
         return 0.0
 
-    dot = 0.0
-    for k, va in ta.items():
-        vb = tb.get(k)
-        if vb:
-            dot += va * vb
+    tf_a = _tf(tokens_a)
+    tf_b = _tf(tokens_b)
 
-    na = math.sqrt(sum(v * v for v in ta.values()))
-    nb = math.sqrt(sum(v * v for v in tb.values()))
-    if na == 0.0 or nb == 0.0:
+    # Document frequency: 2 documents, so a token's idf is always log(2/df).
+    # For 2 docs the idf is non-zero only for terms present in exactly one.
+    # We approximate the per-token presence in each document.
+    common = set(tf_a) & set(tf_b)
+    if not common:
         return 0.0
 
-    return max(0.0, min(1.0, dot / (na * nb)))
+    num = sum(tf_a[t] * tf_b[t] for t in common)
+    den_a = math.sqrt(sum(v * v for v in tf_a.values()))
+    den_b = math.sqrt(sum(v * v for v in tf_b.values()))
+    if den_a == 0 or den_b == 0:
+        return 0.0
+    return num / (den_a * den_b)
 
 
 def keyword_match(a: str, b: str) -> float:
-    """
-    Jaccard similarity on keyword sets.
-    Returns 0.0–1.0.
-    """
-    sa = set(_tokens(a))
-    sb = set(_tokens(b))
-    if not sa or not sb:
+    """Jaccard keyword overlap between two strings, restricted to tokens with len>2."""
+    set_a = set(_tokens(a))
+    set_b = set(_tokens(b))
+    if not set_a and not set_b:
         return 0.0
-    inter = len(sa & sb)
-    union = len(sa | sb)
-    return inter / union if union else 0.0
+    return len(set_a & set_b) / len(set_a | set_b)
 
 
 def overlap_score(semantic_sim: float, keyword: float, expert_weight: float = 0.0) -> int:
-    """
-    Weighted ensemble score.
-    60% semantic + 30% keyword + 10% expert.
-    Returns 0–100 integer.
-    """
-    score = (semantic_sim * 0.6) + (keyword * 0.3) + (expert_weight * 0.1)
-    return int(round(max(0.0, min(1.0, score)) * 100))
+    """Combine semantic similarity and keyword match into a 0-100 score."""
+    combined = (semantic_sim * 0.6) + (keyword * 0.3) + (expert_weight * 0.1)
+    return int(round(max(0.0, min(1.0, combined)) * 100))
 
 
 def match_bucket(sim: float) -> str:
-    """
-    Classify a similarity score into a confidence tier.
-    """
+    """Map a similarity score to a decision bucket."""
     if sim >= 0.75:
         return "auto_match"
     if sim >= 0.50:
         return "review_required"
     return "unique"
-
-
-# ╔════════════════════════════════════════════════════════════════════════════╗
-# ║  DATA STRUCTURES                                                           ║
-# ╚════════════════════════════════════════════════════════════════════════════╝
-
-
-@dataclass
-class MappingResult:
-    left_id: str
-    left_title: str
-    right_id: str
-    right_title: str
-    semantic_similarity: float
-    keyword_similarity: float
-    overlap_score: int
-    decision: str
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "left_id": self.left_id,
-            "left_title": self.left_title,
-            "right_id": self.right_id,
-            "right_title": self.right_title,
-            "semantic_similarity": round(self.semantic_similarity, 4),
-            "keyword_similarity": round(self.keyword_similarity, 4),
-            "overlap_score": self.overlap_score,
-            "decision": self.decision,
-        }
-
-
-# ╔════════════════════════════════════════════════════════════════════════════╗
-# ║  SQLAlchemy I/O LAYER                                                      ║
-# ╚════════════════════════════════════════════════════════════════════════════╝
-
-
-def _control_text(ctrl: UnifiedControl) -> str:
-    """Build the text representation used for similarity matching."""
-    return f"{ctrl.title} {ctrl.description}"
-
-
-def map_controls(db: Session, left_ids: List[str], right_ids: List[str]) -> List[MappingResult]:
-    """
-    Map each control in *left_ids* to its nearest neighbor in *right_ids*.
-
-    SQLAlchemy-aware control-to-control mapping.
-    """
-    left_controls = (
-        db.query(UnifiedControl)
-        .filter(UnifiedControl.id.in_(left_ids))
-        .all()
-    )
-    right_controls = (
-        db.query(UnifiedControl)
-        .filter(UnifiedControl.id.in_(right_ids))
-        .all()
-    )
-
-    results: List[MappingResult] = []
-    for l_ctrl in left_controls:
-        l_text = _control_text(l_ctrl)
-        best_sim = 0.0
-        best_right: Optional[UnifiedControl] = None
-
-        for r_ctrl in right_controls:
-            r_text = _control_text(r_ctrl)
-            sim = cosine_similarity(l_text, r_text)
-            if sim > best_sim:
-                best_sim = sim
-                best_right = r_ctrl
-
-        if best_right:
-            ks = keyword_match(l_text, _control_text(best_right))
-            oscore = overlap_score(best_sim, ks, 0.0)
-            results.append(
-                MappingResult(
-                    left_id=l_ctrl.id,
-                    left_title=l_ctrl.title,
-                    right_id=best_right.id,
-                    right_title=best_right.title,
-                    semantic_similarity=best_sim,
-                    keyword_similarity=ks,
-                    overlap_score=oscore,
-                    decision=match_bucket(best_sim),
-                )
-            )
-
-    return results
 
 
 def compute_framework_overlap(db: Session, framework_a: str, framework_b: str) -> int:
@@ -243,109 +147,3 @@ def get_framework_matrix(db: Session, frameworks: Optional[List[str]] = None) ->
         matrix[a] = row
 
     return matrix
-
-
-def compute_all_control_mappings(
-    db: Session,
-    frameworks: Optional[List[str]] = None,
-    force_recompute: bool = False,
-) -> int:
-    """
-    Compute and persist control-to-control mappings for every pair of controls
-    across all requested frameworks.
-
-    If *force_recompute* is False and mappings already exist, this is a no-op.
-    Defaults to HIPAA-2026 and WA-MHMDA only (no multi-framework N×N).
-    Returns the number of mappings created.
-    """
-    if frameworks is None:
-        frameworks = ["hipaa", "mhmda"]
-
-    # Check if mappings already exist
-    if not force_recompute:
-        existing = db.query(ControlMapping).first()
-        if existing:
-            return 0  # Already computed
-
-    # Get all controls
-    controls = db.query(UnifiedControl).all()
-    if not controls:
-        return 0
-
-    count = 0
-    for i, left in enumerate(controls):
-        for right in controls[i + 1:]:
-            l_text = _control_text(left)
-            r_text = _control_text(right)
-            sem = cosine_similarity(l_text, r_text)
-            kw = keyword_match(l_text, r_text)
-            oscore = overlap_score(sem, kw, 0.0)
-
-            mapping = ControlMapping(
-                left_control_id=left.id,
-                right_control_id=right.id,
-                semantic_similarity=sem,
-                keyword_similarity=kw,
-                overlap_score=oscore,
-                decision=match_bucket(sem),
-                mapping_type=None,  # Could be inferred from overlap_score thresholds
-                expert_weight=0.0,
-            )
-            db.add(mapping)
-            count += 1
-
-    db.commit()
-    return count
-
-
-def find_controls_for_vulnerability(
-    db: Session,
-    description: str,
-    limit: int = 10,
-    min_score: float = 0.15,
-) -> List[Dict[str, Any]]:
-    """
-    Find UnifiedControls that are semantically similar to a vulnerability
-    description. Returns a ranked list of controls with similarity scores.
-
-    TF-IDF cosine similarity search for vulnerability-to-control matching.
-    """
-    controls = db.query(UnifiedControl).all()
-    scored = []
-    for ctrl in controls:
-        ctrl_text = _control_text(ctrl)
-        sem = cosine_similarity(description, ctrl_text)
-        if sem >= min_score:
-            scored.append((sem, ctrl))
-
-    scored.sort(key=lambda x: x[0], reverse=True)
-    return [
-        {
-            "control_id": ctrl.id,
-            "title": ctrl.title,
-            "semantic_similarity": round(sem, 4),
-            "priority_level": ctrl.priority_level,
-            "category": ctrl.category,
-        }
-        for sem, ctrl in scored[:limit]
-    ]
-
-
-def get_controls_by_framework(db: Session, framework: str) -> List[UnifiedControl]:
-    """Return all UnifiedControls that have at least one citation in *framework*."""
-    return (
-        db.query(UnifiedControl)
-        .join(ControlCitation, UnifiedControl.id == ControlCitation.control_id)
-        .filter(ControlCitation.framework == framework)
-        .distinct()
-        .all()
-    )
-
-
-def get_citations_for_control(db: Session, control_id: str) -> List[ControlCitation]:
-    """Return all citations for a given control."""
-    return (
-        db.query(ControlCitation)
-        .filter(ControlCitation.control_id == control_id)
-        .all()
-    )
