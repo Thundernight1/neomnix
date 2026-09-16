@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Lock, AlertCircle, Loader2, Eye, EyeOff, ExternalLink, Activity } from 'lucide-react';
-import { GlassCard } from './ui/GlassCard';
-import { NeonButton } from './ui/NeonButton';
-import { Input } from './ui/input';
+import { Shield, AlertCircle, Eye, EyeOff, Activity } from 'lucide-react';
 import { Label } from './ui/label';
 import { Alert, AlertDescription } from './ui/alert';
 import { useTheme } from '../lib/useTheme';
 import { motion } from 'framer-motion';
 
+type LoginLocationState = {
+  sessionExpired?: boolean;
+};
+
 export default function LoginScreen() {
   const navigate = useNavigate();
-  const location  = useLocation();
+  const location = useLocation();
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -21,8 +22,9 @@ export default function LoginScreen() {
   const { theme } = useTheme();
 
   // Show a contextual message if the user was redirected here (e.g., expired session)
+  const locationState = (location.state as LoginLocationState | null) ?? null;
   const sessionExpired = new URLSearchParams(location.search).get('reason') === 'expired'
-    || (location.state as any)?.sessionExpired === true;
+    || locationState?.sessionExpired === true;
 
   // Redirect away if already authenticated
   useEffect(() => {
@@ -64,8 +66,9 @@ export default function LoginScreen() {
       }
 
       navigate('/', { replace: true });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -115,6 +118,22 @@ export default function LoginScreen() {
               </h2>
               <div className="h-0.5 w-16 bg-[#00F2FF] mx-auto mt-2" />
             </div>
+
+            {sessionExpired && (
+              <Alert variant="default" className="border-[#00F2FF]/30 bg-[#00F2FF]/5">
+                <AlertCircle className="h-4 w-4 text-[#00F2FF]" />
+                <AlertDescription className="text-slate-300">
+                  Your session has expired. Please sign in again to continue.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
             <form onSubmit={handleLogin} className="space-y-5" noValidate>
               <div className="space-y-2">
