@@ -21,7 +21,7 @@ from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from jose import jwt
+import jwt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -313,7 +313,7 @@ def test_get_current_user_inactive_user_raises_401(secret_key, test_db_engine, s
     app.dependency_overrides[get_db] = override_get_db
     try:
         token = jwt.encode(
-            {"sub": sample_user.email},
+            {"sub": sample_user.email, "exp": datetime.utcnow() + timedelta(minutes=5)},
             secret_key,
             algorithm=ALGORITHM,
         )
@@ -341,7 +341,7 @@ def test_get_current_user_success(secret_key, test_db_engine, sample_user):
     app.dependency_overrides[get_db] = override_get_db
     try:
         token = jwt.encode(
-            {"sub": sample_user.email},
+            {"sub": sample_user.email, "exp": datetime.utcnow() + timedelta(minutes=5)},
             secret_key,
             algorithm=ALGORITHM,
         )

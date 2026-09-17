@@ -195,7 +195,10 @@ export function initTheme(): Promise<void> {
       return res.json();
     })
     .then((data: Partial<PlatformTheme>) => {
-      const merged = deepMerge(DEFAULT_THEME, data);
+      const merged = deepMerge(
+        DEFAULT_THEME as unknown as Record<string, unknown>,
+        data as Record<string, unknown>
+      ) as unknown as PlatformTheme;
       _cachedTheme = merged;
       applyCSSVariables(merged.branding);
       applyDocumentMeta(merged.platform);
@@ -215,11 +218,6 @@ export function useTheme(): { theme: PlatformTheme; loading: boolean } {
   const [loading, setLoading] = useState(!_cachedTheme);
 
   useEffect(() => {
-    if (_cachedTheme) {
-      setTheme(_cachedTheme);
-      setLoading(false);
-      return;
-    }
     initTheme().then(() => {
       setTheme(_cachedTheme!);
       setLoading(false);

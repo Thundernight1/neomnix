@@ -62,13 +62,7 @@ def get_recommendation(ucl_id, title, description, frameworks, citations, redis_
         result = json.loads(resp.json().get("response", "{}"))
     except Exception as e:
         log.error("Ollama failed for %s: %s", ucl_id, e)
-        result = {
-            "why_critical": "Ollama servisi erişilemiyor. docker compose ps ile kontrol et.",
-            "fix_steps": ["Ollama container'ının çalıştığını doğrula"],
-            "estimated_days": 0,
-            "evidence_needed": "N/A",
-            "grant_impact": "N/A",
-        }
+        return {"status": "unavailable", "error": "Recommendation service unavailable"}
 
     if redis_client:
         try:

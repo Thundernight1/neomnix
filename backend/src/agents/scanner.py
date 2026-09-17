@@ -21,6 +21,8 @@ class ScannerAgent:
         
         # 1. Execute Nmap Skill
         nmap_result = await self.nmap_skill.execute(self.target, self.intensity)
+        if nmap_result.get("error"):
+            raise RuntimeError("Network scan failed")
         nmap_findings = nmap_result.get("artifacts", [])
         findings.extend(nmap_findings)
         
@@ -35,18 +37,15 @@ class ScannerAgent:
                  zap_target = f"http://{zap_target}"
                  
              zap_result = await self.zap_skill.execute(zap_target, self.intensity)
+             if zap_result.get("error"):
+                 raise RuntimeError("Web scan failed")
              findings.extend(zap_result.get("artifacts", []))
              
         return findings
 
     async def _execute_zap(self) -> List[VulnerabilityArtifact]:
-        """Execute live OWASP ZAP scan."""
-        # Docker networking: ZAP is at hostname 'zap' port 8080
-        target_zap_host = "zap"
-        # If running locally (not in docker), fallback to localhost
-        import os
-        if os.getenv("REDIS_URL") is None: # Simple heuristic to detect local dev
-             target_zap_host = "127.0.0.1"
-             
-        print(f"--- [ScannerAgent] Starting Live ZAP Scan on {self.target} via {target_zap_host}:8080 ---")
-        zap = ZAPv2(proxies={'http': f'http://{target_zap_host}:8080', 'https': f'http://{target_zap_host}:8080'})
+        """Reuse the configured scanner rather than a second incomplete implementation."""
+        result = await self.zap_skill.execute(self.target, self.intensity)
+        if result.get("error"):
+            raise RuntimeError("Web scan failed")
+        return result.get("artifacts", [])

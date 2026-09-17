@@ -295,6 +295,7 @@ class TestWebSocketAlerts:
                 "threat": "UNENCRYPTED_DATABASE",
                 "source": "10.0.0.5",
                 "detail": "Test push",
+                "tenant_id": admin_user.tenant_id,
                 "pcap": "synthetic.pcap",
                 "timestamp": "2026-06-06T00:00:00",
             }

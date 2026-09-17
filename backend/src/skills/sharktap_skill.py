@@ -155,11 +155,11 @@ class SharkTapSkill(BaseSkill):
         try:
             r = subprocess.run(  # nosec B603
                 ["tshark"] + args,
-                capture_output=True, text=True, timeout=timeout
+                capture_output=True, text=True, timeout=timeout, check=True
             )
             return r.stdout
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            return ""
+        except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.CalledProcessError) as exc:
+            raise RuntimeError("Packet analysis tool failed") from exc
 
     def _get_summary(self, pcap_file: str) -> Dict:
         out = self._run_tshark(["-r", pcap_file, "-q", "-z", "io,stat,0"])

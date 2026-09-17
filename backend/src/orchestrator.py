@@ -91,7 +91,7 @@ class NeomnixOrchestrator:
         
         if confidence < 0.8 and ctx.attempt_count < ctx.max_retries:
             print(">>> [Neomnix] Low confidence detected. Triggering recursive intensity boost. <<<")
-            ctx.intensity += 5 
+            ctx.intensity = min(10, ctx.intensity + 5)
             state['loop_triggered'] = True
             return 'rescan'
         

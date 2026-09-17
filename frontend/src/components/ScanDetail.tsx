@@ -42,10 +42,10 @@ interface ScanDetailData {
 
 // Scan phases — honest representation of what each phase means
 const SCAN_PHASES = [
-  { name: 'Enumeration',        icon: Search, color: 'text-blue-400',   description: 'Port & service discovery' },
-  { name: 'Vulnerability Scan', icon: Cpu,    color: 'text-indigo-400', description: 'ZAP active scan' },
-  { name: 'Compliance Mapping', icon: Zap,    color: 'text-amber-400',  description: 'Control framework mapping' },
-  { name: 'Report Generation',  icon: Shield, color: 'text-green-400',  description: 'Executive report' },
+  { name: 'Queued', icon: Search, color: 'text-blue-400', description: 'Waiting for worker' },
+  { name: 'Processing', icon: Cpu, color: 'text-indigo-400', description: 'Analysis and report processing' },
+  { name: 'Results', icon: Zap, color: 'text-amber-400', description: 'Persisted technical findings' },
+  { name: 'Completed', icon: Shield, color: 'text-green-400', description: 'Results available' },
 ];
 
 const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low'];
@@ -77,13 +77,10 @@ export default function ScanDetail() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
 
-  const getToken = () => localStorage.getItem('token') || localStorage.getItem('isAuthenticated');
 
   const fetchScanDetails = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const token = getToken();
-      if (!token) { navigate('/login'); return; }
 
       const res = await fetch(`${API_Base}/scan/${id}`, {
         credentials: 'include',
@@ -97,8 +94,8 @@ export default function ScanDetail() {
       setScan(data);
       setLastUpdated(new Date());
       setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load scan details.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load scan details.');
     } finally {
       setLoading(false);
     }
@@ -123,7 +120,6 @@ export default function ScanDetail() {
     setDownloading(framework);
     let objectUrl: string | null = null;
     try {
-      const token = getToken();
       const res = await fetch(`${API_Base}/reports/pdf/${id}/${framework}`, {
         credentials: 'include',
       });
@@ -147,9 +143,9 @@ export default function ScanDetail() {
       // Revoke after a short delay to ensure download starts
       setTimeout(() => { if (objectUrl) window.URL.revokeObjectURL(objectUrl); }, 2000);
       toast.success(`${framework} report downloaded`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (objectUrl) window.URL.revokeObjectURL(objectUrl);
-      toast.error(`Failed to download ${framework} report: ${err.message}`);
+      toast.error(`Failed to download ${framework} report: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setDownloading(null);
     }
@@ -162,11 +158,7 @@ export default function ScanDetail() {
     if (scan.status === 'failed') return -1;
     if (scan.status === 'pending') return 0;
     // 'running' — infer phase from findings count as a rough proxy
-    const f = scan.findings_count || 0;
-    if (f === 0) return 0;
-    if (f < 5) return 1;
-    if (f < 10) return 2;
-    return 3;
+    return 1;
   };
 
   const currentPhase = getCurrentPhase();
@@ -217,8 +209,8 @@ export default function ScanDetail() {
 
       {/* Header */}
       <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 min-h-16 py-3 flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-white">
               <ArrowLeft className="h-4 w-4 mr-2" /> Dashboard
             </Button>
@@ -290,7 +282,7 @@ export default function ScanDetail() {
               </CardTitle>
               {scan.status === 'completed' && (
                 <div className="flex flex-wrap gap-2">
-                  {(['HIPAA-2026', 'SOC2', 'NIST-800-53'] as const).map((fw) => (
+                  {(['HIPAA-2026', 'WA-MHMDA'] as const).map((fw) => (
                     <Button
                       key={fw}
                       size="sm"
@@ -362,7 +354,7 @@ export default function ScanDetail() {
           {/* Compliance Score Ring */}
           <Card className="bg-slate-900 border-slate-800 flex flex-col items-center justify-center p-6">
             <div className="text-[10px] uppercase font-bold text-slate-500 mb-3 tracking-widest">
-              Compliance Score
+              Technical risk score
             </div>
             {scan.status === 'running' || scan.status === 'pending' ? (
               <div className="flex flex-col items-center gap-3 py-4">
@@ -398,7 +390,7 @@ export default function ScanDetail() {
                     {scan.compliance_score != null ? '%' : ''}
                   </span>
                   <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-1">
-                    {scan.status === 'completed' ? 'Verified' : '—'}
+                    {scan.status === 'completed' ? 'Heuristic only' : '—'}
                   </span>
                 </div>
               </div>

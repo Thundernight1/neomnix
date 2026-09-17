@@ -3,6 +3,7 @@ from typing import Any, Dict
 import json
 import os
 from datetime import datetime
+from uuid import uuid4
 
 class BaseSkill(ABC):
     """
@@ -12,7 +13,7 @@ class BaseSkill(ABC):
     
     def __init__(self, name: str):
         self.name = name
-        self.run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.run_id = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + uuid4().hex
         
     @abstractmethod
     async def execute(self, target: str, **kwargs) -> Dict[str, Any]:
@@ -30,11 +31,14 @@ class BaseSkill(ABC):
         os.makedirs(directory, exist_ok=True)
         filepath = os.path.join(directory, filename)
         
+        # Do not report success when evidence persistence fails. Exclusive
+        # creation avoids overwrite; owner-only mode protects sensitive evidence.
+        descriptor = os.open(filepath, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         try:
-            with open(filepath, "w") as f:
+            with os.fdopen(descriptor, "w") as f:
                 json.dump(data, f, indent=4, default=str)
-            print(f"--- [Skill: {self.name}] Data saved to: {filepath} ---")
-        except Exception as e:
-            print(f"!!! [Skill: {self.name}] Failed to save data: {e} !!!")
+        except Exception:
+            os.unlink(filepath)
+            raise
         
         return filepath

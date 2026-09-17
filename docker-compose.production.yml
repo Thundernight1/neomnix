@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      POSTGRES_DB: ${POSTGRES_DB:?required}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    env_file: [secrets.env]
+    environment:
+      APP_ENV: production
+    volumes: [reports_data:/app/reports, raw_data:/app/data]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/ready"]
+      interval: 10s
+      retries: 15
+      start_period: 20s
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    command: celery -A src.worker.tasks worker --loglevel=info --concurrency=2
+    env_file: [secrets.env]
+    volumes: [reports_data:/app/reports, raw_data:/app/data]
+    depends_on:
+      api: {condition: service_healthy}
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    env_file: [secrets.env]
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - 'exec zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.key="$$ZAP_API_KEY" -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true'
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    ports: ["127.0.0.1:3000:80"]
+    volumes: [./theme.json:/usr/share/nginx/html/theme.json:ro]
+    depends_on:
+      api: {condition: service_healthy}
+    restart: unless-stopped
+volumes:
+  postgres_data:
+  redis_data:
+  reports_data:
+  raw_data:

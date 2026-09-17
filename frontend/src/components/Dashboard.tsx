@@ -59,6 +59,7 @@ function alertsWsUrl(): string {
 interface ScanFinding {
   severity: 'critical' | 'high' | 'medium' | 'low' | string;
   framework?: string;
+  frameworks?: string[];
   cwe_id?: string;
   cvss_score?: number;
   description?: string;
@@ -66,8 +67,10 @@ interface ScanFinding {
 
 interface ScanSummary {
   id: string;
+  target?: string;
   status: 'completed' | 'pending' | 'failed' | 'running' | string;
   framework?: string;
+  frameworks?: string[];
   findings: ScanFinding[];
   created_at?: string;
 }
@@ -82,9 +85,9 @@ function summarize(scans: ScanSummary[]) {
   // from any scan that touched the HIPAA-2026 framework; "active" means
   // the most recent completed scan for that framework.
   const hipaaScans = scans.filter(
-    (s) => s.framework === 'HIPAA-2026' && s.status === 'completed'
+    (s) => (s.framework === 'HIPAA-2026' || s.frameworks?.includes('HIPAA-2026')) && s.status === 'completed'
   );
-  const latestHipaa = hipaaScans[hipaaScans.length - 1];
+  const latestHipaa = hipaaScans[0];
   const hipaaCounts = { critical: 0, high: 0, medium: 0, low: 0 };
   if (latestHipaa) {
     for (const f of latestHipaa.findings) {
@@ -100,10 +103,10 @@ function summarize(scans: ScanSummary[]) {
   // critical or high finding, Green otherwise. No scan = Green (the
   // platform is at baseline until proven otherwise).
   const mhmdaScans = scans.filter(
-    (s) => s.framework === 'WA-MHMDA' && s.status === 'completed'
+    (s) => (s.framework === 'WA-MHMDA' || s.frameworks?.includes('WA-MHMDA')) && s.status === 'completed'
   );
-  const latestMhmda = mhmdaScans[mhmdaScans.length - 1];
-  let mhmdaPosture: 'green' | 'red' = 'green';
+  const latestMhmda = mhmdaScans[0];
+  let mhmdaPosture: 'green' | 'red' | 'unknown' = 'unknown';
   if (latestMhmda) {
     const bad = latestMhmda.findings.some(
       (f) => f.severity === 'critical' || f.severity === 'high'
@@ -122,6 +125,43 @@ export default function Dashboard() {
   const [scans, setScans] = useState<ScanSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [capture, setCapture] = useState<File | null>(null);
+
+  const uploadCapture = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!capture || capture.size > 50 * 1024 * 1024) {
+      setUploadError('Select a PCAP/PCAPNG file of at most 50 MiB.');
+      return;
+    }
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const form = new FormData();
+      form.append('file', capture);
+      const response = await fetch(`${API_BASE}/scans/pcap`, {
+        method: 'POST', body: form, credentials: 'include',
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Upload failed');
+      navigate(`/scan/${data.job_id}`);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+      if (!response.ok) throw new Error('Logout failed');
+      navigate('/login', { replace: true });
+    } catch {
+      setLoadError('Logout failed. Please try again.');
+    }
+  };
 
   // Critical alert state. When non-null, the flashing-red overlay is
   // shown. The event itself is captured for the support handoff but
@@ -139,11 +179,6 @@ export default function Dashboard() {
   const [wsStatus, setWsStatus] = useState<'connecting' | 'open' | 'closed'>('closed');
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('token') || localStorage.getItem('isAuthenticated');
-    if (!authStatus) {
-      navigate('/login', { replace: true });
-      return;
-    }
 
     let cancelled = false;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -213,17 +248,15 @@ export default function Dashboard() {
   // Fetch the latest scans once on mount. Re-runs only if the user
   // navigates away and back.
   useEffect(() => {
-    const authStatus = localStorage.getItem('token') || localStorage.getItem('isAuthenticated');
-    if (!authStatus) return;
     let cancelled = false;
-    (async () => {
+    const refresh = async () => {
       try {
         const res = await fetch(`${API_BASE}/scans`, {
           credentials: 'include',
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: ScanSummary[] = await res.json();
-        if (!cancelled) setScans(data);
+        if (!cancelled) { setScans(data); setLoadError(null); }
       } catch (err) {
         if (!cancelled) {
           setLoadError(err instanceof Error ? err.message : 'Failed to load scans');
@@ -231,9 +264,12 @@ export default function Dashboard() {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    };
+    void refresh();
+    const timer = setInterval(refresh, 10000);
     return () => {
       cancelled = true;
+      clearInterval(timer);
     };
   }, []);
 
@@ -241,6 +277,19 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-8 text-slate-900">
+      <nav className="mx-auto mb-6 flex max-w-7xl flex-wrap justify-end gap-3">
+        <Button onClick={() => navigate('/audit')}>Audit log</Button>
+        <Button onClick={logout}>Sign out</Button>
+      </nav>
+      <form onSubmit={uploadCapture} className="mx-auto mb-6 max-w-7xl rounded-xl border border-slate-200 bg-white p-5">
+        <label htmlFor="capture" className="mb-2 block font-semibold">Analyze an authorized packet capture</label>
+        <p className="mb-3 text-sm text-slate-600">PCAP/PCAPNG, up to 50 MiB. Upload only data you are authorized to process. Technical findings are not a legal compliance certification.</p>
+        <div className="flex flex-wrap items-center gap-4">
+          <input id="capture" type="file" accept=".pcap,.pcapng" required onChange={event => setCapture(event.target.files?.[0] ?? null)} className="max-w-full" />
+          <Button type="submit" disabled={uploading}>{uploading ? 'Uploading…' : 'Analyze capture'}</Button>
+        </div>
+        {uploadError && <p role="alert" className="mt-3 text-red-700">{uploadError}</p>}
+      </form>
       {/* Critical alert overlay (flashing red, hides technical details) */}
       {criticalAlert && (
         <CriticalAlertOverlay
@@ -257,9 +306,6 @@ export default function Dashboard() {
               Healthcare Compliance Posture - {wsStatus === 'open' ? 'Live' : 'Reconnecting'}
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate('/')}>
-            Back to Command Center
-          </Button>
         </header>
 
         {loadError && (
@@ -289,9 +335,9 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <span className="inline-block h-3 w-3 rounded-full bg-emerald-500" />
-                  <span className="text-sm font-semibold text-emerald-700">
-                    No active critical data leak detected
+                  <span className={`inline-block h-3 w-3 rounded-full ${wsStatus === 'open' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                  <span className="text-sm font-semibold text-slate-300">
+                    {wsStatus === 'open' ? 'No critical event received in this session' : 'Live monitoring unavailable'}
                   </span>
                 </div>
               )}
@@ -304,7 +350,7 @@ export default function Dashboard() {
           {/* Module 2: Grant Loss Risk Indicator (WA-MHMDA) */}
           <Card>
             <CardHeader>
-              <CardTitle>Grant Loss Risk Indicator</CardTitle>
+              <CardTitle>WA-MHMDA Technical Findings</CardTitle>
               <CardDescription>
                 WA-MHMDA compliance posture (RCW 19.373.030).
               </CardDescription>
@@ -317,19 +363,19 @@ export default function Dashboard() {
                   'flex items-center gap-3 rounded-md p-3 ' +
                   (summary.mhmdaPosture === 'red'
                     ? 'bg-red-50 text-red-800'
-                    : 'bg-emerald-50 text-emerald-800')
+                    : summary.mhmdaPosture === 'unknown' ? 'bg-slate-100 text-slate-700' : 'bg-emerald-50 text-emerald-800')
                 }
               >
                 <span
                   className={
                     'inline-block h-4 w-4 rounded-full ' +
-                    (summary.mhmdaPosture === 'red' ? 'bg-red-600' : 'bg-emerald-600')
+                    (summary.mhmdaPosture === 'red' ? 'bg-red-600' : summary.mhmdaPosture === 'unknown' ? 'bg-slate-400' : 'bg-emerald-600')
                   }
                 />
                 <span className="text-sm font-semibold">
                   {summary.mhmdaPosture === 'red'
-                    ? 'RED - Grant loss risk elevated'
-                    : 'GREEN - Within compliance posture'}
+                    ? 'High-severity findings require review'
+                    : summary.mhmdaPosture === 'unknown' ? 'Not assessed' : 'No high-severity findings in latest scan'}
                 </span>
               </div>
             </CardContent>
@@ -395,6 +441,14 @@ export default function Dashboard() {
             </AlertDescription>
           </Alert>
         )}
+        {scans.length > 0 && <section className="mt-6">
+          <h2 className="mb-3 text-lg font-semibold">Recent analyses</h2>
+          <ul className="space-y-2">{scans.map(scan => <li key={scan.id}>
+            <button onClick={() => navigate(`/scan/${scan.id}`)} className="w-full rounded border border-slate-200 bg-white p-3 text-left">
+              {scan.target || 'Capture'} · {scan.status} · {scan.findings.length} findings
+            </button>
+          </li>)}</ul>
+        </section>}
       </div>
     </div>
   );
