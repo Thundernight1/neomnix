@@ -10,6 +10,13 @@ adayıdır. “Tüm güvenlik açıkları kapandı” veya “doğrudan müşter
 iddiası değildir. Aşağıdaki dağıtım, operasyon ve mevzuat kabul koşulları
 tamamlanmadan üretime alınmamalıdır. Uzak `main` dalına yazılmadı.
 
+Kullanıcı onayıyla release dalı gönderildi ve
+[PR #8](https://github.com/Thundernight1/neomnix/pull/8) açıldı.
+`0862f26` kod commit'i için backend, frontend ve Docker image build işleri
+[GitHub Actions'ta başarılı tamamlandı](https://github.com/Thundernight1/neomnix/actions/runs/35178923611).
+Netlify preview da başarılı; yardımcı header/page/redirect kontrolleri skipped
+durumundadır. Bu sonuçlar tam Compose staging veya üretim onayı değildir.
+
 ## Düzeltilen önemli sorunlar
 
 - Frontend temiz kurulumundaki ESLint peer dependency çakışması, TypeScript
@@ -44,6 +51,7 @@ tamamlanmadan üretime alınmamalıdır. Uzak `main` dalına yazılmadı.
 | Frontend lint | Başarılı |
 | Frontend testleri | 2 geçti; kapsam sınırlı |
 | TypeScript + Vite production build | Başarılı |
+| GitHub Actions | Backend/frontend/image işleri başarılı; PostgreSQL 17 migration kontrolü dahil |
 | Python bağımlılık taraması | `pip-audit` bilinen açık bulmadı |
 | npm bağımlılık taraması | Audit sırasında bilinen açık bulunmadı |
 | Statik Python güvenlik kontrolü | Bandit bulgu üretmedi |
@@ -137,15 +145,16 @@ GitHub ikisini de MERGEABLE olarak bildirdi; bu CI veya üretim onayı değildir
 İki PR yerel release dalına gerçek merge commit'leriyle birleştirildi. Release
 düzeltmeleriyle oluşan LoginScreen/package/lock çakışmaları, PR amaçlarını kapsayan
 test edilmiş release dosyaları korunarak çözüldü.
-Uzak main/PR durumunu değiştirmek kullanıcı onayı ve başarılı CI gerektirir.
+Kullanıcı push/PR açılmasını onayladı; PR #8 açık ve mergeable durumdadır.
+Main birleştirmesi onaylanmadı ve uygulanmadı.
 Teslim edilen Git yönergesi önce release branch/PR, sonra kontrollü main merge
 akışını kullanır; force push veya branch silme içermez.
 
 ## Üretim öncesinde tamamlanması gerekenler
 
-- Gerçek Docker image build ve Compose staging boot bu sandbox'ta çalıştırılmadı.
-  CI'daki PostgreSQL 17/Redis 7 hedefi, yereldeki PostgreSQL 18/Redis 8 testinden
-  ayrı doğrulanmalıdır. GitHub Actions henüz tetiklenmedi.
+- Docker image build ve PostgreSQL 17 migration GitHub Actions'ta geçti.
+  Tam Compose staging boot ve Redis 7 hedefinde entegrasyon hâlâ doğrulanmalıdır;
+  yerel entegrasyon PostgreSQL 18/Redis 8 kullandı.
 - HTTPS domain, TLS ingress, WebSocket proxy, gerçek secret dağıtımı ve ağ
   izolasyonu deployment sahibi tarafından yapılandırılmalıdır.
 - PostgreSQL restore provası, migration öncesi yedek, duplicate-email incelemesi

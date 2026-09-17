@@ -1,7 +1,7 @@
 # Neomnix: Git teslim ve main birleştirme komutları
 
-Bu komutlar kullanıcı tarafından çalıştırılacak yönergelerdir; bu denetimde uzak
-GitHub deposuna push veya merge yapılmadı. `release/production-audit-20260917`
+Bu komutlar kullanıcı tarafından çalıştırılacak yönergelerdir; kullanıcı onayıyla
+release dalı push edildi ve PR #8 açıldı. Main merge yapılmadı. `release/production-audit-20260917`
 dalında PR #6 ve #7'nin commit geçmişi birleştirilmiştir. Giriş ekranı ve paket
 dosyası çakışmalarında denetlenmiş release sürümü korunmuştur.
 
@@ -67,6 +67,7 @@ main doğrudan güncellenmez.
 
 ```bash
 git push -u origin release/production-audit-20260917
+gh pr view release/production-audit-20260917 --repo Thundernight1/neomnix || \
 gh pr create --repo Thundernight1/neomnix \
   --base main --head release/production-audit-20260917 \
   --title "Release candidate: real scan workflows and security hardening" \
