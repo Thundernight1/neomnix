@@ -27,7 +27,7 @@ services:
     env_file: [secrets.env]
     environment:
       APP_ENV: production
-    volumes: [reports_data:/app/reports]
+    volumes: [reports_data:/app/reports, raw_data:/app/data]
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
@@ -44,7 +44,7 @@ services:
       dockerfile: Dockerfile.prod
     command: celery -A src.worker.tasks worker --loglevel=info --concurrency=2
     env_file: [secrets.env]
-    volumes: [reports_data:/app/reports]
+    volumes: [reports_data:/app/reports, raw_data:/app/data]
     depends_on:
       api: {condition: service_healthy}
     restart: unless-stopped
@@ -67,3 +67,4 @@ volumes:
   postgres_data:
   redis_data:
   reports_data:
+  raw_data:

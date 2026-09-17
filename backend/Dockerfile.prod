@@ -59,7 +59,7 @@ COPY --chown=neomnix:neomnix start.sh .
 RUN chmod +x start.sh
 
 # Create reports directory owned by neomnix
-RUN mkdir -p /app/reports/pdf && chown -R neomnix:neomnix /app/reports
+RUN mkdir -p /app/reports/pdf /app/data/raw && chown -R neomnix:neomnix /app/reports /app/data
 
 USER neomnix
 

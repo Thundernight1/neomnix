@@ -71,6 +71,7 @@ test kapsamı teknik borçtur; “sıfır uyarı” iddiası yoktur.
 | `.github/workflows/ci.yml` | Test, audit, migration ve image build kapıları |
 | `README.md` | Gerçek kurulum, operasyon ve kapsam sınırları |
 | `AUDIT-REPORT.md` | Denetim sonuçları ve dosya bazlı açıklamalar |
+| `GIT-RELEASE.md` | Bundle import, kontrollü PR/CI/main komutları |
 | `QA-INVENTORY.md` | Kontrol matrisi ve üretim kabul başlıkları |
 | `secrets.env.example` | Zorunlu ve opsiyonel ayarların sır içermeyen şablonu |
 | `scripts/init-env.sh` | Rastgele bağımsız sırlar ve mode-600 env oluşturma |
@@ -97,6 +98,7 @@ test kapsamı teknik borçtur; “sıfır uyarı” iddiası yoktur.
 | `backend/src/services/gap_analyzer.py` | Framework kapsamı ve citation ilişki düzeltmesi |
 | `backend/src/services/remediation_ai.py` | Sahte AI fallback yerine açık unavailable sonucu |
 | `backend/src/skills/sharktap_skill.py` | Tshark hata/timeout durumunu sessiz başarıdan ayırma |
+| `backend/src/skills/base.py` | UUID dosya adı, mode-600 kanıt kaydı ve yazma hatasını görünür kılma |
 | `backend/src/skills/zap_skill.py` | API anahtarı ve bounded polling |
 | `backend/src/utils/pdf_exporter.py` | Unicode fallback ve her PDF nesnesinde font kaydı |
 | `backend/src/worker/tasks.py` | Gerçek PCAP işi, başarısızlık, kaynak temizliği, task ayarları |
@@ -132,7 +134,9 @@ Denetim sırasında açık iki PR vardı:
 [PR #7](https://github.com/Thundernight1/neomnix/pull/7) giriş ekranı düzeltmesi ve
 [PR #6](https://github.com/Thundernight1/neomnix/pull/6) frontend bağımlılık güncellemesi.
 GitHub ikisini de MERGEABLE olarak bildirdi; bu CI veya üretim onayı değildir.
-İki PR'ın amacı bu sürüm adayındaki daha kapsamlı düzeltmelere taşındı.
+İki PR yerel release dalına gerçek merge commit'leriyle birleştirildi. Release
+düzeltmeleriyle oluşan LoginScreen/package/lock çakışmaları, PR amaçlarını kapsayan
+test edilmiş release dosyaları korunarak çözüldü.
 Uzak main/PR durumunu değiştirmek kullanıcı onayı ve başarılı CI gerektirir.
 Teslim edilen Git yönergesi önce release branch/PR, sonra kontrollü main merge
 akışını kullanır; force push veya branch silme içermez.
