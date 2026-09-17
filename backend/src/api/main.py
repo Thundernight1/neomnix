@@ -8,6 +8,7 @@ HIPAA-2026 + WA-MHMDA.
 from fastapi import FastAPI, HTTPException, Depends, Request, WebSocket, WebSocketDisconnect, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -21,7 +22,8 @@ from src.api.auth import (
     ChangePasswordRequest, require_role, log_audit, get_db, init_auth_settings,
     get_jwt_secret_key, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError as JWTError
 
 # AI Hub Imports
 from src.agents.ai_hub import AIHub
@@ -38,6 +40,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from src.api.gap import router as gap_router
+from src.api.scans import router as scans_router
 
 
 app = FastAPI(
@@ -45,6 +48,21 @@ app = FastAPI(
     version="2.0.0",
     description="HIPAA / SOC2 / NIST Compliance Scanning Platform"
 )
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    if request.method not in {"GET", "HEAD", "OPTIONS"}:
+        origin = request.headers.get("origin")
+        if origin and origin not in ALLOWED_ORIGINS:
+            return JSONResponse({"detail": "Untrusted origin"}, status_code=403)
+        if request.headers.get("sec-fetch-site") == "cross-site":
+            return JSONResponse({"detail": "Cross-site requests denied"}, status_code=403)
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
 # --- CORS (restrict in production via ALLOWED_ORIGINS env var) ---
 def _env_flag(name: str, default: bool) -> bool:
@@ -161,7 +179,8 @@ class ReportResponse(BaseModel):
 @app.on_event("startup")
 def on_startup():
     init_auth_settings()
-    init_db()
+    if not IS_PROD:
+        init_db()
     # Register AI Agents
     ai_hub.register_agent("scanner", ScannerDispatcher())
     ai_hub.register_agent("cross_mapper", CrossMappingAnalyzer())
@@ -178,6 +197,9 @@ def on_startup():
         
         admin = db.query(User).filter(User.role == "admin").first()
         if not admin:
+            default_password = os.getenv("ADMIN_DEFAULT_PASSWORD")
+            if default_password is None or len(default_password) < 10 or len(default_password.encode()) > 72:
+                raise RuntimeError("ADMIN_DEFAULT_PASSWORD must be 10 characters to 72 UTF-8 bytes.")
             # Create default tenant
             default_tenant = Tenant(
                 id=str(uuid.uuid4()),
@@ -188,8 +210,7 @@ def on_startup():
                 is_active=True
             )
             db.add(default_tenant)
-            db.commit()
-            db.refresh(default_tenant)
+            db.flush()
             
             default_password = os.getenv("ADMIN_DEFAULT_PASSWORD")
             if default_password is None or not default_password.strip():
@@ -225,7 +246,9 @@ async def login(request: Request, response: Response, form_data: OAuth2PasswordR
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account disabled. Contact admin.")
 
-    token = create_access_token(data={"sub": user.email, "role": user.role})
+    from src.api.auth import password_fingerprint
+    token = create_access_token(data={"sub": user.email, "role": user.role,
+                                     "pwd": password_fingerprint(user)})
     log_audit(db, user.tenant_id, user.email, "login")
 
     response.set_cookie(
@@ -246,7 +269,12 @@ async def login(request: Request, response: Response, form_data: OAuth2PasswordR
     )
 
 @app.post("/auth/logout")
-async def logout(response: Response):
+async def logout(request: Request, response: Response):
+    if IS_PROD:
+        from src.api.auth import revoke_token
+        token = request.cookies.get("access_token")
+        if token:
+            revoke_token(token)
     response.delete_cookie("access_token")
     return {"message": "Logged out successfully"}
 
@@ -288,7 +316,8 @@ async def get_me(current_user: User = Depends(get_current_user)):
         email=current_user.email,
         full_name=current_user.full_name,
         role=current_user.role,
-        is_active=current_user.is_active
+        is_active=current_user.is_active,
+        force_password_change=bool(current_user.force_password_change),
     )
 
 
@@ -296,6 +325,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
 async def change_password(
     request: Request,
     payload: ChangePasswordRequest,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -310,6 +340,14 @@ async def change_password(
     current_user.force_password_change = False
     db.commit()
 
+    from src.api.auth import password_fingerprint
+    response.set_cookie(
+        "access_token",
+        create_access_token({"sub": current_user.email, "role": current_user.role,
+                             "pwd": password_fingerprint(current_user)}),
+        httponly=True, secure=IS_PROD, samesite="lax", path="/",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
     log_audit(db, current_user.tenant_id, current_user.email, "password_changed", details={"forced_reset_cleared": True})
     return {"message": "Password updated successfully."}
 
@@ -391,8 +429,8 @@ def get_dashboard_stats(
     ).order_by(ScanJob.created_at.desc()).limit(10).all()
 
     # Compute real aggregate compliance score
-    scores = [_compute_compliance_score(job) for job in recent_completed if job.findings]
-    avg_compliance = round(sum(scores) / len(scores), 1) if scores else 100.0
+    scores = [_compute_compliance_score(job) for job in recent_completed]
+    avg_compliance = round(sum(scores) / len(scores), 1) if scores else None
 
     # Count active risks from recent completed jobs
     high_risks = 0
@@ -510,11 +548,13 @@ async def _authenticate_ws(websocket: WebSocket, db: Session) -> Optional[User]:
     """Authenticate a WebSocket connection using the JWT in the
     HttpOnly cookie or as a fallback the `?token=...` query string.
     """
-    token = websocket.cookies.get("access_token") or websocket.query_params.get("token")
+    token = websocket.cookies.get("access_token")
+    if not IS_PROD:
+        token = token or websocket.query_params.get("token")
     if not token:
         return None
     try:
-        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM])
+        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM], options={"require": ["exp", "sub"]})
         email: str = payload.get("sub")
         if not email:
             return None
@@ -522,6 +562,11 @@ async def _authenticate_ws(websocket: WebSocket, db: Session) -> Optional[User]:
         return None
     user = db.query(User).filter(User.email == email).first()
     if user is None or not user.is_active:
+        return None
+    from src.api.auth import validate_session_claims
+    if user.tenant is not None and not user.tenant.is_active:
+        return None
+    if not validate_session_claims(payload, user, token):
         return None
     return user
 
@@ -548,6 +593,19 @@ async def ws_alerts(
     if user is None:
         await websocket.close(code=1008, reason="unauthorized")
         return
+    origin = websocket.headers.get("origin")
+    if (origin and origin not in ALLOWED_ORIGINS) or user.force_password_change:
+        await websocket.close(code=1008, reason="access denied")
+        return
+    if IS_PROD:
+        from src.services.alerts import stream_alerts
+        try:
+            await stream_alerts(websocket, user.tenant_id)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception("Alert transport unavailable")
+            await websocket.close(code=1013, reason="Alert transport unavailable")
+        return
     await websocket.accept()
 
     HEARTBEAT_INTERVAL = 30.0  # seconds
@@ -559,6 +617,8 @@ async def ws_alerts(
                 event = await asyncio.wait_for(
                     queue.get(), timeout=HEARTBEAT_INTERVAL
                 )
+                if event.get("tenant_id") != user.tenant_id:
+                    continue
                 # event is a dict; serialize as JSON via the websocket.
                 import json as _json
                 await websocket.send_text(_json.dumps(event))
@@ -576,6 +636,8 @@ async def ws_alerts(
 # ║           GAP ANALYSIS ROUTER            ║
 # ╚══════════════════════════════════════════╝
 app.include_router(gap_router)
+app.include_router(gap_router, prefix="/api", include_in_schema=False)
+app.include_router(scans_router)
 
 # ╔══════════════════════════════════════════╗
 # ║           HEALTH & AUDIT                 ║
@@ -584,3 +646,19 @@ app.include_router(gap_router)
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "version": "2.0.0"}
+
+
+@app.get("/ready")
+def readiness(db: Session = Depends(get_db)):
+    from sqlalchemy import text
+    import redis
+    try:
+        db.execute(text("SELECT 1"))
+        with redis.Redis.from_url(
+            os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+            socket_connect_timeout=2, socket_timeout=2
+        ) as broker:
+            broker.ping()
+    except Exception:
+        raise HTTPException(503, "Database or broker unavailable")
+    return {"status": "ready"}

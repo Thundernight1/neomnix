@@ -17,7 +17,7 @@ class ZapSkill(BaseSkill):
         zap_port = os.getenv("ZAP_PORT", "8080")
         self.zap_url = f"http://{zap_host}:{zap_port}"
         print(f"--- [Skill: ZAP] Initialized with proxy {self.zap_url} ---")
-        self.zap = ZAPv2(proxies={'http': self.zap_url, 'https': self.zap_url})
+        self.zap = ZAPv2(apikey=os.getenv("ZAP_API_KEY"), proxies={'http': self.zap_url, 'https': self.zap_url})
         
     async def execute(self, target: str, intensity: int = 1) -> Dict[str, Any]:
         print(f"--- [Skill: ZAP] Initiating Scan on {target} ---")
@@ -56,13 +56,16 @@ class ZapSkill(BaseSkill):
             return {"error": str(e), "artifacts": []}
 
     async def _poll_status(self, status_method, scan_id, name, interval=2):
+        deadline = asyncio.get_running_loop().time() + 900
         while True:
+            if asyncio.get_running_loop().time() > deadline:
+                raise TimeoutError(f"{name} exceeded 900 seconds")
             try:
                 progress = await asyncio.to_thread(lambda: int(status_method(scan_id)))
                 print(f"--- [Skill: ZAP] {name} Progress: {progress}% ---")
                 if progress >= 100: break
-            except:
-                break # Exit if status check fails (scan likely finished or errored)
+            except Exception as exc:
+                raise RuntimeError(f"{name} status check failed") from exc
             await asyncio.sleep(interval)
 
     def _parse_results(self, alerts) -> List[VulnerabilityArtifact]:

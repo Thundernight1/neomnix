@@ -4,7 +4,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1: Builder
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.10-slim AS builder
+FROM python:3.12-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -18,13 +18,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /build
 
-COPY requirements.txt .
-RUN pip install --user -r requirements.txt
+COPY requirements.lock .
+RUN pip install --user -r requirements.lock
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2: Production Runtime
 # ─────────────────────────────────────────────────────────────────────────────
-FROM python:3.10-slim AS runtime
+FROM python:3.12-slim AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -33,6 +34,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Install runtime system deps (nmap for scanner, postgresql client)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nmap \
+    tshark \
+    fonts-dejavu-core \
     curl \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
@@ -49,6 +52,7 @@ COPY --from=builder --chown=neomnix:neomnix /root/.local /home/neomnix/.local
 COPY --chown=neomnix:neomnix src/ ./src/
 COPY --chown=neomnix:neomnix scripts/ ./scripts/
 COPY --chown=neomnix:neomnix alembic.ini .
+COPY --chown=neomnix:neomnix alembic/ ./alembic/
 COPY --chown=neomnix:neomnix start.sh .
 
 # Ensure scripts are executable

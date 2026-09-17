@@ -20,7 +20,7 @@ from sqlalchemy.pool import StaticPool
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.db.models import Base, Tenant, User, UnifiedControl, ControlCitation
+from src.db.models import Base, Tenant, User, UnifiedControl, ControlCitation, AuditLog
 from src.api.auth import get_password_hash
 from src.api.main import app, get_db
 
@@ -123,9 +123,9 @@ def populated_db(db_session):
     db_session.commit()
 
     db_session.add_all([
-        ControlCitation(control_id="UCL-001", framework="hipaa", citation_id="HIPAA-164.312(e)(1)"),
-        ControlCitation(control_id="UCL-001", framework="mhmda", citation_id="RCW-19.373.010"),
-        ControlCitation(control_id="UCL-002", framework="hipaa", citation_id="HIPAA-164.312(b)"),
+        ControlCitation(control_id="UCL-001", framework="hipaa", citation="HIPAA-164.312(e)(1)"),
+        ControlCitation(control_id="UCL-001", framework="mhmda", citation="RCW-19.373.010"),
+        ControlCitation(control_id="UCL-002", framework="hipaa", citation="HIPAA-164.312(b)"),
     ])
     db_session.commit()
     return {"completed_ucl_ids": ["UCL-001"]}  # UCL-002 remains a gap
@@ -140,12 +140,12 @@ def test_post_analyze_returns_202_with_task_id(client, auth_header, monkeypatch)
     from src.api.gap import run_gap_analysis_task
 
     # Mock Celery's .delay() so we don't actually enqueue a task.
-    with patch.object(run_gap_analysis_task, "delay") as mock_delay:
+    with patch.object(run_gap_analysis_task, "apply_async") as mock_delay:
         mock_delay.return_value = MagicMock(id="celery-task-abc-123")
         r = client.post(
             "/api/gap/analyze",
             json={
-                "org_id": "org-1",
+                "org_id": "tenant-gap-test",
                 "completed_ucl_ids": ["UCL-001"],
                 "target_frameworks": ["hipaa", "mhmda"],
                 "include_ai_recommendations": True,
@@ -158,8 +158,8 @@ def test_post_analyze_returns_202_with_task_id(client, auth_header, monkeypatch)
     assert "task_id" in body
     assert body["task_id"] == "celery-task-abc-123"
     assert body["status"] == "queued"
-    mock_delay.assert_called_once_with(
-        org_id="org-1",
+    assert mock_delay.call_args.kwargs["kwargs"] == dict(
+        org_id="tenant-gap-test",
         completed_ucl_ids=["UCL-001"],
         target_frameworks=["hipaa", "mhmda"],
         include_ai=True,
@@ -170,11 +170,11 @@ def test_post_analyze_minimal_payload(client, auth_header, monkeypatch):
     """POST /api/gap/analyze with only required fields works."""
     from src.api.gap import run_gap_analysis_task
 
-    with patch.object(run_gap_analysis_task, "delay") as mock_delay:
+    with patch.object(run_gap_analysis_task, "apply_async") as mock_delay:
         mock_delay.return_value = MagicMock(id="t-min")
         r = client.post(
             "/api/gap/analyze",
-            json={"org_id": "org-min"},
+            json={"org_id": "tenant-gap-test"},
             headers=auth_header,
         )
 
@@ -182,11 +182,11 @@ def test_post_analyze_minimal_payload(client, auth_header, monkeypatch):
     body = r.json()
     assert body["task_id"] == "t-min"
     # Defaults from the model
-    mock_delay.assert_called_once_with(
-        org_id="org-min",
+    assert mock_delay.call_args.kwargs["kwargs"] == dict(
+        org_id="tenant-gap-test",
         completed_ucl_ids=[],
         target_frameworks=None,
-        include_ai=True,
+        include_ai=False,
     )
 
 
@@ -207,9 +207,12 @@ def test_post_analyze_without_auth_returns_401(client):
     ("RETRY",   "retry"),
     ("STARTED", "started"),
 ])
-def test_get_results_celery_states(client, auth_header, celery_state, expected_status):
+def test_get_results_celery_states(client, auth_header, db_session, celery_state, expected_status):
     """GET /api/gap/results/{task_id} handles all Celery states."""
     # Mock celery.result.AsyncResult.
+    db_session.add(AuditLog(tenant_id="tenant-gap-test", user_email="admin@gap.io",
+                           action="gap_requested", resource_id=f"task-{celery_state}"))
+    db_session.commit()
     fake_result = MagicMock()
     fake_result.state = celery_state
     if celery_state == "SUCCESS":
@@ -260,7 +263,7 @@ def test_get_report_returns_in_scope_frameworks(client, auth_header, monkeypatch
     )
 
     with patch("src.api.gap.analyze_gaps", return_value=fake_report) as mock_analyze:
-        r = client.get("/api/gap/report/org-xyz", headers=auth_header)
+        r = client.get("/api/gap/report/tenant-gap-test", headers=auth_header)
 
     assert r.status_code == 200
     body = r.json()
@@ -283,7 +286,7 @@ def test_get_report_with_frameworks_filter(client, auth_header, monkeypatch):
 
     with patch("src.api.gap.analyze_gaps", return_value=fake_report) as mock_analyze:
         r = client.get(
-            "/api/gap/report/org-xyz?frameworks=hipaa,mhmda",
+            "/api/gap/report/tenant-gap-test?frameworks=hipaa,mhmda",
             headers=auth_header,
         )
 

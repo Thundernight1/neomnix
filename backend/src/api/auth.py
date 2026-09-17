@@ -7,14 +7,18 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError as JWTError
 from passlib.context import CryptContext
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+from typing import Literal
 from sqlalchemy.orm import Session
 
 from src.db.models import User, SessionLocal, AuditLog
 
 import os
+import hashlib
+import time
 
 # --- Configuration ---
 ALGORITHM = "HS256"
@@ -34,6 +38,45 @@ def get_jwt_secret_key() -> str:
 def init_auth_settings() -> None:
     get_jwt_secret_key()
 
+
+def password_fingerprint(user):
+    return hashlib.sha256(user.hashed_password.encode()).hexdigest()
+
+
+def _production():
+    return (os.getenv("APP_ENV") or os.getenv("ENV") or "").lower() in {"production", "prod"}
+
+
+def _revocation_key(token):
+    return "neomnix:revoked:" + hashlib.sha256(token.encode()).hexdigest()
+
+
+def validate_session_claims(payload, user, token):
+    fingerprint = payload.get("pwd")
+    if (fingerprint or _production()) and fingerprint != password_fingerprint(user):
+        return False
+    if _production():
+        import redis
+        try:
+            with redis.Redis.from_url(os.environ["REDIS_URL"], socket_timeout=2) as client:
+                return not client.exists(_revocation_key(token))
+        except Exception:
+            raise HTTPException(503, "Session validation unavailable")
+    return True
+
+
+def revoke_token(token):
+    import redis
+    try:
+        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM], options={"require": ["exp", "sub"]})
+    except JWTError:
+        return
+    try:
+        with redis.Redis.from_url(os.environ["REDIS_URL"], socket_timeout=2) as client:
+            client.setex(_revocation_key(token), max(1, int(payload["exp"] - time.time())), "1")
+    except Exception:
+        raise HTTPException(503, "Logout unavailable; retry")
+
 # --- Password Hashing ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -51,13 +94,25 @@ class TokenResponse(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
-    new_password: str
+    new_password: str = Field(min_length=10, max_length=72)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_bytes(cls, value):
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("Password must not exceed 72 UTF-8 bytes")
+        return value
 
 class UserCreate(BaseModel):
-    email: str
-    password: str
+    email: str = Field(min_length=3, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    password: str = Field(min_length=10, max_length=72)
     full_name: Optional[str] = None
-    role: str = "analyst"
+    role: Literal["admin", "analyst", "viewer"] = "analyst"
+
+    @field_validator("password")
+    @classmethod
+    def password_bytes(cls, value):
+        return ChangePasswordRequest.password_bytes(value)
 
 class UserResponse(BaseModel):
     id: int
@@ -65,6 +120,7 @@ class UserResponse(BaseModel):
     full_name: Optional[str]
     role: str
     is_active: bool
+    force_password_change: bool = False
 
 class TokenData(BaseModel):
     email: Optional[str] = None
@@ -111,7 +167,7 @@ async def get_current_user(
     if not token:
         raise credentials_exception
     try:
-        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM])
+        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM], options={"require": ["exp", "sub"]})
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
@@ -121,6 +177,12 @@ async def get_current_user(
     user = db.query(User).filter(User.email == email).first()
     if user is None or not user.is_active:
         raise credentials_exception
+    if not validate_session_claims(payload, user, token):
+        raise credentials_exception
+    if user.tenant is not None and not user.tenant.is_active:
+        raise credentials_exception
+    if user.force_password_change and request.url.path not in {"/auth/me", "/auth/change-password", "/auth/logout"}:
+        raise HTTPException(status_code=403, detail="Password change required")
     return user
 
 

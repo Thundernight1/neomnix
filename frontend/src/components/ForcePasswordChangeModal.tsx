@@ -83,11 +83,10 @@ export default function ForcePasswordChangeModal({ onPasswordChanged }: Props) {
         throw new Error(data.detail || 'Password change failed.');
       }
 
-      localStorage.removeItem('force_password_change');
       setSuccess(true);
       setTimeout(() => onPasswordChanged(), 2000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Password change failed');
     } finally {
       setLoading(false);
     }

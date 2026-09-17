@@ -171,3 +171,4 @@ The automated Neomnix system performed a zero-trust security scan.
                 print(f"--- [ComplianceAgent] Generated PDF Report: {pdf_path} ---")
             except Exception as e:
                 print(f"!!! [ComplianceAgent] Failed to generate PDF for {fw}: {e} !!!")
+                raise RuntimeError(f"PDF generation failed for {fw}") from e

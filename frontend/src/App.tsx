@@ -1,6 +1,5 @@
-/// <reference types="react" />
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
 import Dashboard from './components/Dashboard';
 import LoginScreen from './components/LoginScreen';
 import ScanDetail from './components/ScanDetail';
@@ -8,66 +7,39 @@ import AuditLog from './components/AuditLog';
 import NotFound from './components/NotFound';
 import ForcePasswordChangeModal from './components/ForcePasswordChangeModal';
 import ErrorBoundary from './components/ErrorBoundary';
-// Chunk 5: Crossmap is no longer routed. The component still exists
-// as a stub at components/Crossmap.tsx so any pre-refactor internal
-// link resolves to a clean explanation page rather than a 404.
 import { useTheme } from './lib/useTheme';
+import { API_BASE } from './lib/api';
 
-function AppInner() {
-  // Initialise and apply the white-label theme once at the app root
-  useTheme();
-
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-
+function Protected({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<'loading' | 'anonymous' | 'reset' | 'ready' | 'error'>('loading');
+  const location = useLocation();
   useEffect(() => {
-    const forceChange = localStorage.getItem('force_password_change');
-    if (forceChange === 'true' && (localStorage.getItem('token') || localStorage.getItem('isAuthenticated'))) {
-      setShowPasswordModal(true);
-    }
-  }, []);
-
-  const isAuthenticated = () => !!localStorage.getItem('isAuthenticated') || !!localStorage.getItem('token');
-
-  // ProtectedRoute defined outside render to avoid re-creation on every render
-  return (
-    <>
-      {showPasswordModal && (
-        <ForcePasswordChangeModal onPasswordChanged={() => setShowPasswordModal(false)} />
-      )}
-
-      <Router>
-        <Routes>
-          <Route path="/login" element={<LoginScreen />} />
-
-          <Route
-            path="/"
-            element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" replace />}
-          />
-          <Route
-            path="/dashboard"
-            element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" replace />}
-          />
-          <Route
-            path="/scan/:id"
-            element={isAuthenticated() ? <ScanDetail /> : <Navigate to="/login" replace />}
-          />
-          <Route
-            path="/audit"
-            element={isAuthenticated() ? <AuditLog /> : <Navigate to="/login" replace />}
-          />
-
-          {/* Catch-all 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </>
-  );
+    const controller = new AbortController();
+    fetch(`${API_BASE}/auth/me`, { credentials: 'include', signal: controller.signal })
+      .then(async res => {
+        if (res.status === 401) { setSession('anonymous'); return; }
+        if (!res.ok) throw new Error('Session check failed');
+        const user = await res.json();
+        setSession(user.force_password_change ? 'reset' : 'ready');
+      })
+      .catch(error => { if (error.name !== 'AbortError') setSession('error'); });
+    return () => controller.abort();
+  }, [location.pathname]);
+  if (session === 'loading') return <p role="status">Checking session…</p>;
+  if (session === 'anonymous') return <Navigate to="/login?reason=expired" replace />;
+  if (session === 'error') return <p role="alert">Cannot reach the server. Reload to retry.</p>;
+  if (session === 'reset') return <ForcePasswordChangeModal onPasswordChanged={() => setSession('ready')} />;
+  return children;
 }
 
 export default function App() {
-  return (
-    <ErrorBoundary>
-      <AppInner />
-    </ErrorBoundary>
-  );
+  useTheme();
+  return <ErrorBoundary><BrowserRouter><Routes>
+    <Route path="/login" element={<LoginScreen />} />
+    <Route path="/" element={<Protected><Dashboard /></Protected>} />
+    <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+    <Route path="/scan/:id" element={<Protected><ScanDetail /></Protected>} />
+    <Route path="/audit" element={<Protected><AuditLog /></Protected>} />
+    <Route path="*" element={<NotFound />} />
+  </Routes></BrowserRouter></ErrorBoundary>;
 }

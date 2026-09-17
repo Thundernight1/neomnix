@@ -33,9 +33,22 @@ Penalty tier model (Chunk 3 R2 + Chunk 4 R3):
   see the comment above PENALTY_TIER_LABELS.
 """
 
-from fpdf import FPDF
+from fpdf import FPDF as BaseFPDF
 from datetime import datetime
 import os
+import unicodedata
+
+
+class FPDF(BaseFPDF):
+    """Unicode fonts preserve evidence; the core-font fallback transliterates."""
+    def normalize_text(self, text):
+        if not self.is_ttf_font:
+            text = text.translate(str.maketrans({
+                "—": "-", "–": "-", "→": "->", "’": "'", "“": '"', "”": '"',
+                "ı": "i", "İ": "I", "ş": "s", "Ş": "S", "ğ": "g", "Ğ": "G",
+            }))
+            text = unicodedata.normalize("NFKD", text).encode("latin-1", "replace").decode("latin-1")
+        return super().normalize_text(text)
 
 
 # ╔════════════════════════════════════════════════════════════════════════════╗
@@ -149,7 +162,16 @@ def _ensure_ttf_loaded(pdf: FPDF) -> None:
     is process-global, so the same TTF is shared across all FPDF
     instances.
     """
+    if pdf.__dict__.get("_neomnix_fonts_loaded", False):
+        return
     if _TTF_STATE["attempted"]:
+        if _TTF_STATE["loaded"]:
+            regular = _TTF_STATE["regular"]
+            for style, path in [("", regular), ("B", _TTF_STATE["bold"] or regular),
+                                ("I", regular), ("BI", regular)]:
+                if f"{_FONT_FAMILY.lower()}{style}" not in pdf.fonts:
+                    pdf.add_font(_FONT_FAMILY, style, path)
+            pdf._neomnix_fonts_loaded = True
         return
     _TTF_STATE["attempted"] = True
 
@@ -193,6 +215,7 @@ def _ensure_ttf_loaded(pdf: FPDF) -> None:
         _TTF_STATE["bold_italic"] = None  # always synthesized from regular
 
         _TTF_STATE["loaded"] = True
+        pdf._neomnix_fonts_loaded = True
     except Exception as exc:  # noqa: BLE001
         # Don't crash the report if a malformed TTF is installed.
         # The caller will fall back to Helvetica.

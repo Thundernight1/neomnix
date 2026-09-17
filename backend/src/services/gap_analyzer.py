@@ -58,7 +58,9 @@ def analyze_gaps(db: Session, completed_ucl_ids: List[str], target_frameworks=No
     if target_frameworks is None:
         target_frameworks = SUPPORTED_FRAMEWORKS
 
-    all_controls = db.query(UnifiedControl).all()
+    all_controls = db.query(UnifiedControl).join(
+        ControlCitation, ControlCitation.control_id == UnifiedControl.id
+    ).filter(ControlCitation.framework.in_(target_frameworks)).distinct().all()
     total = len(all_controls)
     if total == 0:
         return GapReport(total_controls=0, passing_controls=0, failing_controls=0, score=0)
@@ -82,7 +84,7 @@ def analyze_gaps(db: Session, completed_ucl_ids: List[str], target_frameworks=No
         affected = list({c.framework for c in citations_qs})
         citations_map = {}
         for c in citations_qs:
-            citations_map.setdefault(c.framework, []).append(c.citation_id)
+            citations_map.setdefault(c.framework, []).append(c.citation)
 
         gaps.append(GapItem(
             ucl_id=ctrl.id,

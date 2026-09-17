@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Lock, AlertCircle, Loader2, Eye, EyeOff, ExternalLink, Activity } from 'lucide-react';
-import { GlassCard } from './ui/GlassCard';
-import { NeonButton } from './ui/NeonButton';
-import { Input } from './ui/input';
+import { Shield, AlertCircle, Eye, EyeOff, Activity } from 'lucide-react';
+import { API_BASE } from '../lib/api';
 import { Label } from './ui/label';
 import { Alert, AlertDescription } from './ui/alert';
 import { useTheme } from '../lib/useTheme';
@@ -22,14 +20,9 @@ export default function LoginScreen() {
 
   // Show a contextual message if the user was redirected here (e.g., expired session)
   const sessionExpired = new URLSearchParams(location.search).get('reason') === 'expired'
-    || (location.state as any)?.sessionExpired === true;
+    || (location.state as { sessionExpired?: boolean } | null)?.sessionExpired === true;
 
   // Redirect away if already authenticated
-  useEffect(() => {
-    if (localStorage.getItem('token') || localStorage.getItem('isAuthenticated')) {
-      navigate('/', { replace: true });
-    }
-  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +34,7 @@ export default function LoginScreen() {
       formData.append('username', email.trim());
       formData.append('password', password);
 
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         credentials: 'include',
@@ -53,19 +46,9 @@ export default function LoginScreen() {
         throw new Error(data.detail || 'Incorrect email or password. Please try again.');
       }
 
-      const data = await res.json();
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.removeItem('token'); // Clear old token if present
-
-      if (data.force_password_change) {
-        localStorage.setItem('force_password_change', 'true');
-      } else {
-        localStorage.removeItem('force_password_change');
-      }
-
       navigate('/', { replace: true });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -116,12 +99,14 @@ export default function LoginScreen() {
               <div className="h-0.5 w-16 bg-[#00F2FF] mx-auto mt-2" />
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-5" noValidate>
+            {sessionExpired && <Alert><AlertCircle className="h-4 w-4" /><AlertDescription>Your session has expired. Please sign in again.</AlertDescription></Alert>}
+            {error && <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert>}
+            <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
                 <Label className="text-slate-400 text-[10px] uppercase font-bold tracking-widest ml-1">Email Address</Label>
                 <input
                   type="email"
-                  placeholder="admin@ralphloop.io"
+                  placeholder="admin@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-4 text-white focus:outline-none focus:border-[#00F2FF] transition-all placeholder:text-slate-700"

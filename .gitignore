@@ -9,6 +9,8 @@ env/
 
 .env
 .env.*
+!.env.example
+!**/.env.example
 
 .trae/
 
@@ -19,6 +21,7 @@ dist-ssr/
 
 secrets.env
 secrets.env.*
+!secrets.env.example
 
 backend/reports/
 backend/src/db/*.db

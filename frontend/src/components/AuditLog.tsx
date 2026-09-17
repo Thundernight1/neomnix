@@ -20,7 +20,7 @@ interface AuditLogEntry {
   user: string;
   action: string;
   resource: string | null;
-  details: any;
+  details: Record<string, unknown> | null;
   time: string;
   ip: string | null;
 }
@@ -65,8 +65,8 @@ export default function AuditLog() {
       }
       if (!res.ok) throw new Error('Failed to load audit log');
       setLogs(await res.json());
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Failed to load audit log');
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ export default function AuditLog() {
       log.details ? JSON.stringify(log.details) : '',
     ]);
     const csvContent = [header, ...rows]
-      .map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .map(r => r.map(cell => `"${String(cell).replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`).join(','))
       .join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -147,8 +147,8 @@ export default function AuditLog() {
       <Toaster position="top-right" theme="dark" />
 
       <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 min-h-16 py-3 flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-slate-400 hover:text-white">
               <ArrowLeft className="h-4 w-4 mr-2" /> Dashboard
             </Button>
@@ -178,7 +178,7 @@ export default function AuditLog() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Security & Activity Log</h1>
             <p className="text-slate-400 text-sm">
-              Tamper-evident record of all platform activity · HIPAA / SOC 2 audit trail
+              Recorded platform activity. External immutable storage and retention must be configured by your operator.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -294,8 +294,8 @@ export default function AuditLog() {
         {/* Compliance assurance cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { icon: Shield,   color: 'green',  label: 'Immutability',  value: 'Append-only log' },
-            { icon: Clock,    color: 'blue',   label: 'Retention',     value: '365-day policy' },
+            { icon: Shield,   color: 'green',  label: 'Storage',  value: 'Database audit log' },
+            { icon: Clock,    color: 'blue',   label: 'Retention',     value: 'Operator managed' },
             { icon: Activity, color: 'purple', label: 'Coverage',      value: `${logs.length} events recorded` },
           ].map(({ icon: Icon, color, label, value }) => (
             <div key={label} className={`p-4 bg-slate-900 border border-slate-800 rounded-lg flex items-center gap-4`}>
